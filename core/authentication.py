@@ -6,7 +6,6 @@ from core.database import Base
 from core.config import settings
 from sqlalchemy import Column, Integer, String, ForeignKey, Text
 from sqlalchemy.orm import relationship
-from addons.admin_module.models import Parameter
 
 # Jelszó hash-elés
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")

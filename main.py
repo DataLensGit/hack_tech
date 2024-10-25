@@ -1,7 +1,6 @@
 from fastapi import FastAPI, Request, HTTPException, Form, Depends
 from core.endpoint_logic import load_all_avaliable_modules, load_module, templates
 from addons.sample_module.controllers import router as sample_module_router
-from addons.admin_module.controllers import router as admin_module_router
 from core.database import engine, Base  # Importáld az engine-t és a Base-t
 from core.authentication import verify_password, get_user_by_username, create_access_token, decode_jwt
 from fastapi.staticfiles import StaticFiles
@@ -9,7 +8,6 @@ from core.database import get_db
 from sqlalchemy.orm import Session
 from fastapi.responses import RedirectResponse
 import logging
-from addons.admin_module.models import ContractTemplate, TextBlock, Parameter, BlockCondition
 
 
 # Logger beállítása
@@ -27,10 +25,8 @@ app = FastAPI()
 
 # Statikus fájlok kezelése
 app.mount("/static", StaticFiles(directory="static"), name="static")
-app.mount("/admin_static", StaticFiles(directory="addons/admin_module/static"), name="admin_static")
 
 app.include_router(sample_module_router, prefix="/sample_module")
-app.include_router(admin_module_router, prefix="/admin_module")
 
 # Jinja2 szűrő hozzáadása a FastAPI alkalmazáshoz
 templates.env.filters['decode_jwt'] = decode_jwt
@@ -68,4 +64,4 @@ if __name__ == "__main__":
     import os
 
     port = int(os.environ.get("PORT", 8000))  # Heroku-n PORT változó lesz elérhető
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
+    uvicorn.run("main:app", host="localhost", port=port, reload=True)
