@@ -5,10 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d44df78d-462c-4bb5-9538-7dbdf75d44af" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/core/candidates_models.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/convert_to_pdf.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/authentication.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/authentication.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -68,6 +66,7 @@
       <recent name="C:\Users\Hbali\PycharmProjects\Contract_generator\addons" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Hbali\PycharmProjects\base_project\cv-s" />
       <recent name="C:\Users\Hbali\PycharmProjects\Contract_generator" />
       <recent name="C:\Users\Hbali\PycharmProjects\Base project\static\img" />
       <recent name="C:\Users\Hbali\PycharmProjects\Base project\core" />
@@ -211,7 +210,15 @@
       <option name="project" value="LOCAL" />
       <updated>1729926438690</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="database_init">
+      <option name="closed" value="true" />
+      <created>1729928823566</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1729928823566</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -230,6 +237,7 @@
     <MESSAGE value="first ever commit" />
     <MESSAGE value="heroku test" />
     <MESSAGE value="init_commit" />
-    <option name="LAST_COMMIT_MESSAGE" value="init_commit" />
+    <MESSAGE value="database_init" />
+    <option name="LAST_COMMIT_MESSAGE" value="database_init" />
   </component>
 </project>
