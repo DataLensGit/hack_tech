@@ -8,7 +8,7 @@ from core.database import get_db
 from sqlalchemy.orm import Session
 from fastapi.responses import RedirectResponse
 import logging
-
+import core.candidates_models
 
 # Logger beállítása
 logging.basicConfig(level=logging.INFO)

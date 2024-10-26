@@ -10,20 +10,6 @@ from sqlalchemy.orm import relationship
 # Jelszó hash-elés
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
-
-# UserProperty modell
-class UserProperty(Base):
-    __tablename__ = "user_properties"
-
-    id = Column(Integer, primary_key=True, index=True)
-    property_name = Column(String(255), nullable=False)  # Paraméter neve (pl. név, adószám)
-    property_description = Column(Text, nullable=True)   # Paraméter leírása
-    identifier = Column(String(255), nullable=False, unique=True)  # Azonosító (kisbetű, ékezet nélkül)
-
-    # Kapcsolat a UserPropertyAssignment táblával
-    properties_assignments = relationship("UserPropertyAssignment", back_populates="property")
-
-
 # Felhasználók táblája
 class User(Base):
     __tablename__ = "users"
@@ -35,20 +21,6 @@ class User(Base):
 
     # Kapcsolat a tulajdonságokkal
     properties = relationship("UserPropertyAssignment", back_populates="user")
-
-
-# UserPropertyAssignment modell
-class UserPropertyAssignment(Base):
-    __tablename__ = "user_property_assignments"
-
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    property_id = Column(Integer, ForeignKey('user_properties.id'), nullable=False)
-    value = Column(Text, nullable=True)  # Felhasználóspecifikus érték
-
-    # Kapcsolat a felhasználókkal és a tulajdonságokkal
-    user = relationship("User", back_populates="properties")
-    property = relationship("UserProperty", back_populates="properties_assignments")
 
 
 # Jelszó kezelése és JWT kezelés
