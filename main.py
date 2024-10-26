@@ -1,5 +1,6 @@
-from fastapi import FastAPI, Request, HTTPException, Form, Depends
-from core.endpoint_logic import load_all_avaliable_modules, load_module, templates
+from fastapi import FastAPI, Request, HTTPException, Form, Depends, UploadFile, File
+import os
+from core.endpoint_logic import load_all_avaliable_modules, load_module, templates, handle_file_upload
 from addons.sample_module.controllers import router as sample_module_router
 from core.database import engine, Base  # Importáld az engine-t és a Base-t
 from core.authentication import verify_password, get_user_by_username, create_access_token, decode_jwt
@@ -59,6 +60,12 @@ def login(username: str = Form(...), password: str = Form(...), db: Session = De
 @app.get("/login")
 async def login_get(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
+
+#Saját végpontok kezelése
+@app.post("/upload-pdf")
+async def upload_pdf(file: UploadFile = File(...)):
+    # Meghívjuk a handle_file_upload függvényt az endpoint_logic modulból
+    return handle_file_upload(file)
 
 if __name__ == "__main__":
     import uvicorn

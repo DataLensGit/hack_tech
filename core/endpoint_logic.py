@@ -2,11 +2,24 @@ import os
 import json
 import importlib
 from fastapi.templating import Jinja2Templates
-from fastapi import HTTPException
+from fastapi import HTTPException, UploadFile, File
 from core.database import engine
 import sys
 # Templating rendszer (Jinja2)
 templates = Jinja2Templates(directory="templates")
+
+def handle_file_upload(file: UploadFile):
+    # Ellenőrizzük, hogy a fájl PDF típusú-e
+    if file.content_type != "application/pdf":
+        raise HTTPException(status_code=400, detail="Csak PDF fájlokat lehet feltölteni")
+
+    # PDF fájl mentése a "documents" mappába
+    save_path = os.path.join("documents", file.filename)
+    with open(save_path, "wb") as buffer:
+        buffer.write(file.file.read())
+
+    return {"message": "Fájl sikeresen feltöltve", "filename": file.filename}
+
 
 def load_all_avaliable_modules(request):
     modules = []
