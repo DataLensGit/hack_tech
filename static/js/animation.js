@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     anime({
         targets: '#triangle path',
-        fill: '#008bad',
+        fill: '#009abc',
         duration: 500,
         delay: 1500,
         easing: 'easeOutCubic'
