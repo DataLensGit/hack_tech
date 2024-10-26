@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request, HTTPException, Form, Depends, UploadFile, File, WebSocket
 import os
-from core.endpoint_logic import load_all_avaliable_modules, load_module, templates, handle_file_upload, generate_data
+from core.endpoint_logic import process_selected_items, get_item_list, load_all_avaliable_modules, load_module, templates, handle_file_upload, generate_data
 from core.microphone import transcribe_audio
 from addons.sample_module.controllers import router as sample_module_router
 from core.database import engine, Base  # Importáld az engine-t és a Base-t
@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from fastapi.responses import RedirectResponse
 import logging
 from typing import Optional
+from typing import List
 
 
 # Logger beállítása
@@ -94,6 +95,17 @@ async def upload_audio(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Nem sikerült feldolgozni a hangfájlt: {str(e)}")
 
+# Végpont az elemek lekérésére
+@app.get("/items")
+async def get_items():
+    items = get_item_list()
+    return {"items": items}
+
+# Végpont a kiválasztott elemek visszaküldésére
+@app.post("/selected-items")
+async def selected_items(selected_ids: List[int]):
+    result = process_selected_items(selected_ids)
+    return result
 
 @app.get("/results")
 async def results_page(request: Request, param1: Optional[str] = None, param2: Optional[str] = None):
