@@ -4,11 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d44df78d-462c-4bb5-9538-7dbdf75d44af" name="Changes" comment="Params for HTML">
+    <list default="true" id="d44df78d-462c-4bb5-9538-7dbdf75d44af" name="Changes" comment="Textarea for company has been changed, drag and drop added">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/events.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/events.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/transcript.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/transcript.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/home.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/home.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/mainpage.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/mainpage.css" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -26,7 +24,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="Kristof" />
+        <entry key="$PROJECT_DIR$" value="219b716a54b96a7ce150dfc24e1eb5de9a294c93" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -52,25 +50,25 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "DefaultHtmlFileTemplate": "HTML File",
-    "Python.add_parameter_to_user.executor": "Run",
-    "Python.add_testuser.executor": "Run",
-    "Python.controllers.executor": "Run",
-    "Python.create_new_module.executor": "Run",
-    "Python.create_project_structure.executor": "Run",
-    "Python.database.executor": "Run",
-    "Python.endpoint_logic.executor": "Run",
-    "Python.main.executor": "Run",
-    "Python.reset_database.executor": "Run",
-    "Python.test_database.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "frontend",
-    "last_opened_file_path": "C:/Users/Hbali/PycharmProjects/Contract_generator/addons/admin_module/templates",
-    "settings.editor.selected.configurable": "promo.javascript"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
+    &quot;Python.add_parameter_to_user.executor&quot;: &quot;Run&quot;,
+    &quot;Python.add_testuser.executor&quot;: &quot;Run&quot;,
+    &quot;Python.controllers.executor&quot;: &quot;Run&quot;,
+    &quot;Python.create_new_module.executor&quot;: &quot;Run&quot;,
+    &quot;Python.create_project_structure.executor&quot;: &quot;Run&quot;,
+    &quot;Python.database.executor&quot;: &quot;Run&quot;,
+    &quot;Python.endpoint_logic.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;Python.reset_database.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test_database.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;frontend&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Hbali/PycharmProjects/Contract_generator/addons/admin_module/templates&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;promo.javascript&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\Hbali\PycharmProjects\Contract_generator\addons\admin_module\templates" />
@@ -268,13 +266,13 @@
       <option name="project" value="LOCAL" />
       <updated>1729955729723</updated>
     </task>
-    <task id="LOCAL-00019" summary="Params for HTML">
+    <task id="LOCAL-00019" summary="Job kis J vel">
       <option name="closed" value="true" />
-      <created>1729956203784</created>
+      <created>1729958472471</created>
       <option name="number" value="00019" />
       <option name="presentableId" value="LOCAL-00019" />
       <option name="project" value="LOCAL" />
-      <updated>1729956203784</updated>
+      <updated>1729958472471</updated>
     </task>
     <option name="localTasksCounter" value="20" />
     <servers />
@@ -312,7 +310,7 @@
     <MESSAGE value="Integrated voice transcript" />
     <MESSAGE value="Params for result html" />
     <MESSAGE value="Textarea for company has been changed, drag and drop added" />
-    <MESSAGE value="Params for HTML" />
-    <option name="LAST_COMMIT_MESSAGE" value="Params for HTML" />
+    <MESSAGE value="Job kis J vel" />
+    <option name="LAST_COMMIT_MESSAGE" value="Job kis J vel" />
   </component>
 </project>
