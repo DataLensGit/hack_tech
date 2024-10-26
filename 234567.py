@@ -1,5 +1,7 @@
-from fastapi import FastAPI, Request, HTTPException, Form, Depends, File, UploadFile
-
+from fastapi import FastAPI, Request, HTTPException, Form, Depends, UploadFile, File, WebSocket
+import os
+from core.endpoint_logic import load_all_avaliable_modules, load_module, templates, handle_file_upload, generate_data
+from core.microphone import transcribe_audio
 from core.database import engine, Base  # Importáld az engine-t és a Base-t
 from core.authentication import verify_password, get_user_by_username, create_access_token, decode_jwt
 from fastapi.staticfiles import StaticFiles
@@ -7,71 +9,68 @@ from core.database import get_db
 from sqlalchemy.orm import Session
 from fastapi.responses import RedirectResponse
 import logging
-import core.candidates_models
-from core.inserting_data import parse_job_description
-from core.job_description_model import JobDescription  # Importáld a JobDescription modellt
-from core.endpoint_logic import templates, handle_file_upload_job_description,handle_file_upload_cv generate_data
-from core.microphone import transcribe_audio
-from core.cache_logic import preprocess_and_cache
-import pdfplumber  # PDF feldolgozás
+from typing import Optional
+from typing import List
+from pydantic import BaseModel
+import json
+
 
 # Logger beállítása
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(_name_)
 
+# Adatbázis táblák létrehozása (ha még nem léteznek)
+try:
+    Base.metadata.create_all(bind=engine)
+    logger.info("A táblák létrehozása sikeresen megtörtént.")
+except Exception as e:
+    logger.error(f"Hiba a táblák létrehozásakor: {e}")
 
 app = FastAPI()
 
 # Statikus fájlok kezelése
 app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static/js", StaticFiles(directory="static/js"), name="js")
+
+app.include_router(sample_module_router, prefix="/sample_module")
+
+# Jinja2 szűrő hozzáadása a FastAPI alkalmazáshoz
+templates.env.filters['decode_jwt'] = decode_jwt
+
+# Kezdőoldal: modulok listázása
 @app.get("/")
 def home(request: Request):
-    return templates.TemplateResponse("home.html", {"request": request})
+    return templates.TemplateResponse("home.html", {"request": request, "modules": modules})
+
+
 # Modul oldalak kezelése
-# PDF feldolgozás a dataset mappából
-@app.post("/process-dataset")
-async def process_dataset(db: Session = Depends(get_db)):
-    dataset_path = "dataset/job_descriptions"  # A PDF-eket tartalmazó mappa
-    if not os.path.exists(dataset_path):
-        raise HTTPException(status_code=404, detail="Dataset mappa nem található")
+@app.get("/modules/{module_name}")
+def get_module(module_name: str, request: Request):
+    return load_module(module_name, request)
 
-    # PDF fájlok feldolgozása
-    for filename in os.listdir(dataset_path):
-        if filename.endswith(".pdf"):
-            file_path = os.path.join(dataset_path, filename)
-            try:
-                # PDF fájl olvasása
-                with pdfplumber.open(file_path) as pdf:
-                    text = "\n".join(page.extract_text() for page in pdf.pages)
+@app.post("/login")
+def login(username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+    user = get_user_by_username(db, username)
+    if not user or not verify_password(password, user.hashed_password):
+        raise HTTPException(status_code=400, detail="Invalid credentials")
 
-                # PDF szöveg elemzése
-                sections = parse_job_description(text)
+    # Token létrehozása
+    access_token = create_access_token(data={"sub": user.username})
 
-                # Adatok adatbázisba mentése
-                job_description = JobDescription(
-                    job_title=sections.get("job_title"),
-                    company_overview=sections.get("company_overview"),
-                    key_responsibilities=sections.get("key_responsibilities"),
-                    required_qualifications=sections.get("required_qualifications"),
-                    preferred_skills=sections.get("preferred_skills"),
-                    benefits=sections.get("benefits")
-                )
-                db.add(job_description)
-                db.commit()
-                logger.info(f"Sikeresen feldolgozva: {filename}")
-            except Exception as e:
-                logger.error(f"Hiba a '{filename}' feldolgozása során: {e}")
-                db.rollback()
+    # Sikeres bejelentkezés esetén visszaállítjuk a felhasználót a home oldalra, és beállítjuk a token-t a session-be
+    response = RedirectResponse(url="/", status_code=303)  # Átirányítás 303 See Other státuszkóddal
+    response.set_cookie(key="access_token", value=access_token)
+    return response
 
-    return {"message": "Dataset feldolgozása befejeződött"}
-@app.post("/upload-pdf-job")
-async def upload_pdf_job_pdf(file: UploadFile = File(...)):
+@app.get("/login")
+async def login_get(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
+#Saját végpontok kezelése
+@app.post("/upload-pdf")
+async def upload_pdf(file: UploadFile = File(...)):
     # Meghívjuk a handle_file_upload függvényt az endpoint_logic modulból
-    return handle_file_upload_job_description(file)
-@app.post("/upload-pdf-cv")
-async def upload_pdf_job_cv(file: UploadFile = File(...)):
-    # Meghívjuk a handle_file_upload függvényt az endpoint_logic modulból
-    return handle_file_upload_cv_description(file)
+    return handle_file_upload(file)
 
 @app.get("/get-items")
 async def get_items():
@@ -98,6 +97,8 @@ async def upload_audio(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Nem sikerült feldolgozni a hangfájlt: {str(e)}")
 
+
+
 @app.get("/results")
 async def results_page(request: Request, param1: Optional[str] = None, param2: Optional[str] = None):
     data = generate_data(param1, param2)
@@ -109,6 +110,22 @@ async def results_page(request: Request, param1: Optional[str] = None, param2: O
         "best_item_id": data['best_item_id'],
         "best_item_explanation": data['best_item_explanation']
     })
+
+
+class Keyword(BaseModel):
+    skill: str
+    weight: int
+
+class JobSubmission(BaseModel):
+    industry: str
+    jobDescription: Optional[str] = None
+    keywords: List[Keyword] = []
+
+# Végpont a form adatok és fájl fogadására
+
+class Keyword(BaseModel):
+    skill: str
+    weight: int
 
 # Végpont a form adatok és fájl fogadására
 @app.post("/submit-job")
@@ -143,11 +160,10 @@ async def submit_job(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Nem sikerült feldolgozni a kérést: {str(e)}")
 
-if __name__ == "__main__":
+
+if _name_ == "_main_":
     import uvicorn
     import os
-    from core.database import initialize_database
-    initialize_database()
-    #preprocess_and_cache()
+
     port = int(os.environ.get("PORT", 8000))  # Heroku-n PORT változó lesz elérhető
     uvicorn.run("main:app", host="localhost", port=port, reload=True)

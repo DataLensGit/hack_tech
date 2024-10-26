@@ -5,7 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d44df78d-462c-4bb5-9538-7dbdf75d44af" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/234567.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/endpoint_logic.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/endpoint_logic.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <list id="a64c9041-028c-45e5-86ec-2205b7d7fb8e" name="Changes by HAdrian" comment="">
       <change beforePath="$PROJECT_DIR$/core/cache_logic.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/cache_logic.py" afterDir="false" />
@@ -36,6 +39,20 @@
   </component>
   <component name="GithubDefaultAccount">
     <option name="defaultAccountId" value="83f2c502-e397-4d96-8cb5-bc2feda81db2" />
+  </component>
+  <component name="LineStatusTrackerManager">
+    <file path="$PROJECT_DIR$/main.py">
+      <ranges>
+        <range start1="0" end1="0" start2="0" end2="3" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="1" end1="3" start2="4" end2="4" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="12" end1="13" start2="13" end2="16" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="24" end1="25" start2="27" end2="30" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="26" end1="42" start2="31" end2="31" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="78" end1="78" start2="67" end2="96" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="79" end1="79" start2="97" end2="141" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="85" end1="85" start2="147" end2="148" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+      </ranges>
+    </file>
   </component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
@@ -299,7 +316,15 @@
       <option name="project" value="LOCAL" />
       <updated>1729972294684</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="ezthasználdKristóf">
+      <option name="closed" value="true" />
+      <created>1729975838468</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1729975838468</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -325,6 +350,7 @@
     <MESSAGE value="nemtommennyireszar" />
     <MESSAGE value="nemtommennyireszarvedfbergrefbergb" />
     <MESSAGE value="jólettamatch" />
-    <option name="LAST_COMMIT_MESSAGE" value="jólettamatch" />
+    <MESSAGE value="ezthasználdKristóf" />
+    <option name="LAST_COMMIT_MESSAGE" value="ezthasználdKristóf" />
   </component>
 </project>
