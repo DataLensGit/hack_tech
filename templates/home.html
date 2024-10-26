@@ -14,6 +14,7 @@
     <script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.0/anime.min.js"></script>
     <script src="/static/js/animation.js" defer></script>
+    <script src="/static/js/events.js" defer></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,18 +42,26 @@
         <svg id="triangle" viewBox="0 0 246 285" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M10.75 18.2254L226 142.5L10.75 266.775L10.75 18.2254Z" stroke="transparent" stroke-width="20" />
         </svg>
-        <div class="left">
+        <div class="side left">
             <img class="bg" src="/static/img/left.jpg" alt="I'm looking for a job">
             <div class="content">
                 <h2>I'm <span>looking</span> for a job</h2>
-
+            </div>
+            <div class="card">
+                <h3>Upload your CV here:</h3>
+                <input type="file" id="cv" name="cv" accept=".pdf">
+                <div class="file-selector">
+                    <img src="/static/img/file.png" alt="Upload file">
+                    <p>Click here, or drag and drop your CV</p>
+                </div>
             </div>
         </div>
-        <div class="right">
+        <div class="side right">
             <img class="bg" src="/static/img/right.jpg" alt="I'm offering a job">
             <div class="content">
                 <h2>I'm <span>offering</span> a job</h2>
             </div>
+            <div class="card">FOR HR</div>
         </div>
     </section>
 </body>
