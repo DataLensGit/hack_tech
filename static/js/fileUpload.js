@@ -30,43 +30,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Submit esemény figyelése
-    submitButton.addEventListener('click', () => {
-        const formData = new FormData();
-        const industry = document.getElementById('industry').value;
-        const jobDescription = jobDescriptionTextarea.value;
-
-        // Hozzáadjuk az Industry és a jobDescription mezőket
-        formData.append('industry', industry);
-        formData.append('jobDescription', jobDescription);
-
-        // Ha van csatolt fájl, azt is hozzáadjuk
-        if (attachedFile) {
-            formData.append('cv', attachedFile);
-        }
-
-        // Kulcsszavak összegyűjtése
-        document.querySelectorAll('.keywords .line').forEach((line, index) => {
-            const skill = line.querySelector('input[type="text"]:first-child').value;
-            const weight = line.querySelector('input[type="text"]:nth-child(2)').value;
-            if (skill && weight) {
-                formData.append(`keywords[${index}][skill]`, skill);
-                formData.append(`keywords[${index}][weight]`, weight);
-            }
-        });
-
-        // POST kérés küldése a backendnek
-        fetch('/submit-job', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Válasz a szervertől:', data);
-            // Ide jöhet a további feldolgozás
-        })
-        .catch(error => {
-            console.error('Hiba történt az adatok küldése közben:', error);
-        });
-    });
 });
