@@ -1,8 +1,21 @@
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelector('#triangle path').style.stroke = '#008bad';
 
+    setTimeout(() => {
+        document.querySelector('body').style.opacity = 1;
+    }, 100);
+
     gsap.from('#triangle', {
-        scale: 0,
+        width: "0%",
+        height: "0%",
+        duration: 1.25,
+        ease: 'power3.out',
+        delay: 0.25
+    });
+
+    gsap.from('h2', {
+        y: 80,
+        opacity: 0,
         duration: 1.25,
         ease: 'power3.out',
         delay: 0.25
@@ -12,14 +25,18 @@ document.addEventListener('DOMContentLoaded', function() {
         targets: '#triangle path',
         strokeDashoffset: [anime.setDashoffset, 0],
         easing: 'easeInOutQuint',
-        duration: 2000,
+        duration: 1900,
         complete: function() {
             anime({
                 targets: '#triangle path',
                 fill: '#008bad',
-                duration: 800,
+                duration: 500,
                 easing: 'easeOutCubic'
             });
         }
     });
+
+    let mainLeft = document.querySelector('.main-page .left');
+    let mainRight = document.querySelector('.main-page .right');
+
 });
