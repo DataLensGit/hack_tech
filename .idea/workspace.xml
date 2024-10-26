@@ -5,18 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d44df78d-462c-4bb5-9538-7dbdf75d44af" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/core/INDUSTRY_KEYWORDS.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/core/cache_model.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/core/embedding_models.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/diktafon.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/core/cache_logic.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/cache_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/cache_model.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/candidates_models.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/candidates_models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/database.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/database.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/extract_cv_info.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/extract_cv_info.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/extract_job_info.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/extract_job_info.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/job_description_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/job_description_model.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/matching.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/matching.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/diktafon.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -84,11 +81,11 @@
       <recent name="C:\Users\Hbali\PycharmProjects\Contract_generator\addons" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Hbali\PycharmProjects\base_project\core" />
       <recent name="C:\Users\Hbali\PycharmProjects\base_project\cv-s" />
       <recent name="C:\Users\Hbali\PycharmProjects\Contract_generator" />
       <recent name="C:\Users\Hbali\PycharmProjects\Base project\static\img" />
       <recent name="C:\Users\Hbali\PycharmProjects\Base project\core" />
-      <recent name="C:\Users\Hbali\PycharmProjects\Base project" />
     </key>
   </component>
   <component name="RunManager">
@@ -268,7 +265,15 @@
       <option name="project" value="LOCAL" />
       <updated>1729942966003</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="nemtommennyireszar">
+      <option name="closed" value="true" />
+      <created>1729957715938</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1729957715938</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -291,6 +296,7 @@
     <MESSAGE value="debugbackend" />
     <MESSAGE value="offer analysis done" />
     <MESSAGE value="matching" />
-    <option name="LAST_COMMIT_MESSAGE" value="matching" />
+    <MESSAGE value="nemtommennyireszar" />
+    <option name="LAST_COMMIT_MESSAGE" value="nemtommennyireszar" />
   </component>
 </project>

@@ -278,3 +278,6 @@ def process_cvs_in_directory(directory_path, max_workers=10):
 # Example usage
 cv_directory = "../cv-s"  # Directory where your CV files are located
 process_cvs_in_directory(cv_directory)
+
+if __name__ == "__Main__":
+    pass

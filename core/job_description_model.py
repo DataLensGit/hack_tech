@@ -12,6 +12,7 @@ class IndustryField(Base):
     job_description_id = Column(Integer, ForeignKey('job_descriptions.id'), nullable=False)
 class JobDescription(Base):
     __tablename__ = "job_descriptions"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
     job_title = Column(String(255), nullable=True)
@@ -58,3 +59,6 @@ class Benefit(Base):
     job_description_id = Column(Integer, ForeignKey('job_descriptions.id'), nullable=False)
 
     job_description = relationship("JobDescription", back_populates="benefits")
+
+if __name__ == "__Main__":
+    pass

@@ -4,57 +4,20 @@ from sqlalchemy.orm import Session
 from core.database import SessionLocal, engine
 from candidates_models import Candidate, Experience, Skill
 from job_description_model import JobDescription, Responsibility, Qualification, PreferredSkill, IndustryField
-from cache_model import TextVectorCache, CandidateJobScore, CandidateIndustryCache  # Az új adatbázis táblák importálása
+from candidates_models import TextVectorCache, CandidateJobScore, CandidateIndustryCache  # Az új adatbázis táblák importálása
 from INDUSTRY_KEYWORDS import INDUSTRY_KEYWORDS
 import spacy
 import pickle  # A vektorok bináris tárolásához
 from concurrent.futures import ThreadPoolExecutor
-
+import openai
+import os
 # Constants for weightage
 INDUSTRY_KNOWLEDGE_WEIGHT = 0.10
 TECHNICAL_SKILLS_WEIGHT = 0.30
 JOB_MATCHING_WEIGHT = 0.60
+openai.api_key = os.getenv("OPENAI_API_KEY")
+from cache_logic import get_cached_vector, preprocess_and_cache
 
-# SpaCy betöltése
-try:
-    nlp = spacy.load("en_core_web_md")
-except OSError:
-    import subprocess
-    import sys
-    print("The 'en_core_web_md' model is not installed. Installing...")
-    subprocess.check_call([sys.executable, "-m", "spacy", "download", "en_core_web_md"])
-    nlp = spacy.load("en_core_web_md")
-
-# Vektorizáció cache-elése
-def get_cached_vector(text: str, db: Session):
-    try:
-        # Ellenőrizzük, hogy a vektor már a cache-ben van-e
-        cached = db.query(TextVectorCache).filter_by(text=text).first()
-        if cached:
-            # Vektor betöltése az adatbázisból
-            vector = pickle.loads(cached.vector)
-            print(f"Vector found in cache for text: '{text}'")
-            return vector
-        else:
-            # Vektor kiszámítása és mentése a cache-be
-            print(f"Calculating and caching vector for text: '{text}'")
-            doc = nlp(text)
-            vector = doc.vector
-            # Vektor mentése az adatbázisba
-            cached_vector = TextVectorCache(
-                text=text,
-                vector=pickle.dumps(vector)
-            )
-            db.add(cached_vector)
-            db.flush()  # Flush a változások írása előtt
-            db.commit()  # Elmentjük az adatbázisba
-            return vector
-    except Exception as e:
-        db.rollback()
-        print(f"Error during vector caching for text '{text}': {e}")
-        raise e
-
-# Kulcsszavak alapján iparági kategorizálás
 def match_industry_keywords(text: str, db: Session) -> List[str]:
     matched_industries = []
     cleaned_text = text.lower().strip()
@@ -183,13 +146,24 @@ def calculate_and_save_final_score(candidate: Candidate, job_description: JobDes
         print("Score already calculated and saved.")
         return existing_score.final_score
 
-    industry_score = calculate_industry_score_cached(candidate, job_description, db)
-    technical_score = calculate_technical_skills_score_cached(candidate, job_description, db=db)
-    job_matching_score = calculate_job_matching_score(candidate, job_description, db)
+    # Pontszámítás
+    try:
+        industry_score = calculate_industry_score_cached(candidate, job_description, db)
+        print(f"Industry Score for Candidate {candidate.first_name} {candidate.last_name}: {industry_score}")
 
-    print(f"Industry Score: {industry_score}")
-    print(f"Technical Skills Score: {technical_score}")
-    print(f"Job Matching Score: {job_matching_score}")
+        technical_score = calculate_technical_skills_score_cached(candidate, job_description, db=db)
+        print(f"Technical Skills Score for Candidate {candidate.first_name} {candidate.last_name}: {technical_score}")
+
+        job_matching_score = calculate_job_matching_score(candidate, job_description, db)
+        print(f"Job Matching Score for Candidate {candidate.first_name} {candidate.last_name}: {job_matching_score}")
+    except Exception as e:
+        print(f"Error during score calculation for candidate {candidate.first_name} {candidate.last_name}: {e}")
+        return 0.0
+
+    # Ellenőrizzük, hogy bármelyik pontszám nullával tért-e vissza
+    if industry_score == 0 and technical_score == 0 and job_matching_score == 0:
+        print(f"All scores are zero for candidate {candidate.first_name} {candidate.last_name}. Skipping...")
+        return 0.0
 
     final_score = (
         (industry_score * INDUSTRY_KNOWLEDGE_WEIGHT) +
@@ -197,20 +171,28 @@ def calculate_and_save_final_score(candidate: Candidate, job_description: JobDes
         (job_matching_score * JOB_MATCHING_WEIGHT)
     )
 
-    print(f"Final Score: {final_score}")
+    print(f"Final Score for Candidate {candidate.first_name} {candidate.last_name}: {final_score}")
 
-    candidate_job_score = CandidateJobScore(
-        candidate_id=candidate.id,
-        job_id=job_description.id,
-        industry_score=industry_score,
-        technical_score=technical_score,
-        job_matching_score=job_matching_score,
-        final_score=final_score
-    )
-    db.add(candidate_job_score)
-    db.commit()
+    # Pontszám elmentése az adatbázisba
+    try:
+        candidate_job_score = CandidateJobScore(
+            candidate_id=candidate.id,
+            job_id=job_description.id,
+            industry_score=industry_score,
+            technical_score=technical_score,
+            job_matching_score=job_matching_score,
+            final_score=final_score
+        )
+        db.add(candidate_job_score)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"Error during score saving for candidate {candidate.first_name} {candidate.last_name}: {e}")
+        return 0.0
 
     return final_score
+
+
 
 # Jelöltek rangsorolása egy adott állásra
 def rank_candidates_for_job(job_description: JobDescription, db: Session, top_n: int = 5) -> List[Dict]:
@@ -230,7 +212,7 @@ def rank_candidates_for_job(job_description: JobDescription, db: Session, top_n:
             "score": score
         }
 
-    with ThreadPoolExecutor(max_workers=10) as executor:
+    with ThreadPoolExecutor(max_workers=20) as executor:
         results = list(executor.map(get_score_for_candidate, candidates))
 
     ranked_candidates = sorted(results, key=lambda x: x["score"], reverse=True)[:top_n]
@@ -245,30 +227,11 @@ def rank_candidates_for_job(job_description: JobDescription, db: Session, top_n:
         for candidate in ranked_candidates
     ]
 
-# Pontszámok előzetes kiszámítása és eltárolása az adatbázisba
-def precompute_all_scores(db: Session):
-    candidates = db.query(Candidate).all()
-    job_descriptions = db.query(JobDescription).all()
-
-    def compute_for_pair(args):
-        candidate, job_description = args
-        calculate_and_save_final_score(candidate, job_description, db)
-
-    from itertools import product
-    candidate_job_pairs = list(product(candidates, job_descriptions))
-
-    print(f"\n=== Precomputing Scores for {len(candidate_job_pairs)} Candidate-Job Pairs ===")
-
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        executor.map(compute_for_pair, candidate_job_pairs)
 
 # Fő folyamat indítása
 if __name__ == "__main__":
     db = SessionLocal()
-
-    # Előre kiszámítjuk és eltároljuk az összes lehetséges pontszámot
-    precompute_all_scores(db)
-
+    preprocess_and_cache(db)
     # Példa a jelöltek rangsorolására egy adott állásra
     job_id = 2  # Tegyük fel, hogy van egy állás azonosítóval 2
 

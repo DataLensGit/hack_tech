@@ -2,6 +2,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import Column, Integer, String, ForeignKey, Date, Text
 from sqlalchemy.orm import relationship
 from core.database import Base
+from core.job_description_model import JobDescription  # Importáld a JobDescription modellt
+
 
 # Candidate model to store basic information about the candidate
 class Candidate(Base):
@@ -12,11 +14,11 @@ class Candidate(Base):
     last_name = Column(String(255), nullable=False)
     email = Column(String, index=True, nullable=False)
     phone_number = Column(String(50), nullable=True)
-    location = Column(Text, nullable=True)  # Address or general location
-    linkedin_url = Column(Text, nullable=True)  # LinkedIn profile URL
-    summary = Column(Text, nullable=True)  # Brief professional summary
+    location = Column(Text, nullable=True)
+    linkedin_url = Column(Text, nullable=True)
+    summary = Column(Text, nullable=True)
 
-    # Relationships to other CV details
+    # Kapcsolatok más táblákkal
     educations = relationship("Education", back_populates="candidate", cascade="all, delete-orphan")
     experiences = relationship("Experience", back_populates="candidate", cascade="all, delete-orphan")
     skills = relationship("Skill", back_populates="candidate", cascade="all, delete-orphan")
@@ -24,9 +26,9 @@ class Candidate(Base):
     certificates = relationship("Certificate", back_populates="candidate", cascade="all, delete-orphan")
     projects = relationship("Project", back_populates="candidate", cascade="all, delete-orphan")
     attachments = relationship("Attachment", back_populates="candidate", cascade="all, delete-orphan")
-    industries = relationship("CandidateIndustryCache", back_populates="candidate", cascade="all, delete-orphan")
 
-# Education model to store education details
+    # Használj szöveges hivatkozást a relationship-ben
+    industries = relationship("CandidateIndustryCache", back_populates="candidate", cascade="all, delete-orphan")
 class Education(Base):
     __tablename__ = "educations"
 
@@ -81,8 +83,45 @@ class Language(Base):
 
     candidate = relationship("Candidate", back_populates="languages")
 
+from sqlalchemy import Column, Integer, String, Float, LargeBinary, ForeignKey, UniqueConstraint
+from sqlalchemy.orm import relationship
+from core.database import Base
 
-# Certificate model to store certifications acquired by the candidate
+# Szöveg és vektorok cache-elésére szolgáló tábla
+# Szöveg és vektorok cache-elésére szolgáló tábla
+class TextVectorCache(Base):
+    __tablename__ = 'text_vector_cache'
+
+    id = Column(Integer, primary_key=True, index=True)
+    text = Column(String, unique=True, index=True)
+    vector = Column(LargeBinary)  # A vektort bináris formában tároljuk
+
+# Jelölt iparági tapasztalatainak cache-elésére szolgáló tábla
+class CandidateIndustryCache(Base):
+    __tablename__ = 'candidate_industry_cache'
+
+    id = Column(Integer, primary_key=True, index=True)
+    candidate_id = Column(Integer, ForeignKey('candidates.id'), index=True)
+    industry_name = Column(String, index=True)
+
+    # Használj szöveges hivatkozást a relationship-ben
+    candidate = relationship("Candidate", back_populates="industries")
+class CandidateJobScore(Base):
+    __tablename__ = 'candidate_job_score'
+
+    id = Column(Integer, primary_key=True, index=True)
+    candidate_id = Column(Integer, ForeignKey('candidates.id'), index=True)
+    job_id = Column(Integer, ForeignKey('job_descriptions.id'), index=True)
+    industry_score = Column(Float, nullable=False)
+    technical_score = Column(Float, nullable=False)
+    job_matching_score = Column(Float, nullable=False)
+    final_score = Column(Float, nullable=False)
+
+    __table_args__ = (UniqueConstraint('candidate_id', 'job_id', name='unique_candidate_job'),)
+
+    # Használj szöveges hivatkozást
+    candidate = relationship("Candidate")
+    job_description = relationship("JobDescription")
 class Certificate(Base):
     __tablename__ = "certificates"
 
@@ -125,19 +164,26 @@ class Attachment(Base):
     candidate = relationship("Candidate", back_populates="attachments")
 
 def create_candidate(db: Session, first_name: str, last_name: str, email: str, phone_number: str = None, location: str = None, linkedin_url: str = None, summary: str = None) -> Candidate:
-    candidate = Candidate(
-        first_name=first_name,
-        last_name=last_name,
-        email=email,
-        phone_number=phone_number,
-        location=location,
-        linkedin_url=linkedin_url,
-        summary=summary
-    )
-    db.add(candidate)
-    db.commit()
-    db.refresh(candidate)
-    return candidate
+    try:
+        candidate = Candidate(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            phone_number=phone_number,
+            location=location,
+            linkedin_url=linkedin_url,
+            summary=summary
+        )
+        db.add(candidate)
+        db.commit()
+        db.refresh(candidate)
+        print(f"Successfully created candidate: {first_name} {last_name} - {email}")
+        return candidate
+    except Exception as e:
+        db.rollback()
+        print(f"Error creating candidate {first_name} {last_name}: {e}")
+        return None
+
 
 
 def add_education(db: Session, candidate_id: int, degree: str, institution: str, start_date=None, end_date=None, description=None, field_of_study=None):
@@ -223,3 +269,6 @@ def add_attachment(db: Session, candidate_id: int, file_name: str, file_path: st
     )
     db.add(attachment)
     db.commit()
+
+if __name__ == "__Main__":
+    pass

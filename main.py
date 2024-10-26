@@ -10,8 +10,8 @@ import logging
 import core.candidates_models
 from core.inserting_data import parse_job_description
 from core.job_description_model import JobDescription  # Importáld a JobDescription modellt
+
 import pdfplumber  # PDF feldolgozás
-import os
 
 # Logger beállítása
 logging.basicConfig(level=logging.INFO)
