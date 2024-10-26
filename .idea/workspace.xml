@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d44df78d-462c-4bb5-9538-7dbdf75d44af" name="Changes" comment="Ez se lesz jó de updatelni kell">
+    <list default="true" id="d44df78d-462c-4bb5-9538-7dbdf75d44af" name="Changes" comment="Backend endpoint">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/static/js/submit.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/submit.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -315,7 +314,23 @@
       <option name="project" value="LOCAL" />
       <updated>1729970706128</updated>
     </task>
-    <option name="localTasksCounter" value="25" />
+    <task id="LOCAL-00025" summary="Update endpoint, try update">
+      <option name="closed" value="true" />
+      <created>1729971694749</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1729971694749</updated>
+    </task>
+    <task id="LOCAL-00026" summary="Backend endpoint">
+      <option name="closed" value="true" />
+      <created>1729972016212</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1729972016212</updated>
+    </task>
+    <option name="localTasksCounter" value="27" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -357,6 +372,8 @@
     <MESSAGE value="Wrong endpoints delete" />
     <MESSAGE value="Endpoint for submit.js" />
     <MESSAGE value="Ez se lesz jó de updatelni kell" />
-    <option name="LAST_COMMIT_MESSAGE" value="Ez se lesz jó de updatelni kell" />
+    <MESSAGE value="Update endpoint, try update" />
+    <MESSAGE value="Backend endpoint" />
+    <option name="LAST_COMMIT_MESSAGE" value="Backend endpoint" />
   </component>
 </project>
