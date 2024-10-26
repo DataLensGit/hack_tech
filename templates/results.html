@@ -31,7 +31,9 @@
                     <img src="{{ item.image }}" alt="{{ item.name }}">
                     <h3>{{ item.name }}</h3>
                     <p>{{ item.description }}</p>
-                    <p>Rating: {{ item.rating }}</p>
+                    <div class="rating" data-="{{ item.rating }}">
+                        {{ item.rating }}
+                    </p>
                     {% if item.id == best_item_id %}
                         <p><strong>{{ best_item_explanation }}</strong></p>
                     {% endif %}
