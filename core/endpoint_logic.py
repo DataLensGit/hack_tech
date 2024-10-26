@@ -9,7 +9,7 @@ import random
 # Templating rendszer (Jinja2)
 templates = Jinja2Templates(directory="templates")
 
-def generate_data():
+def generate_data(param1=None, param2=None):
     # 5 objektum létrehozása, mindegyik tartalmaz képet, nevet, leírást és értékelést
     items = []
     for i in range(1, 6):

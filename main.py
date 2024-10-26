@@ -10,6 +10,7 @@ from core.database import get_db
 from sqlalchemy.orm import Session
 from fastapi.responses import RedirectResponse
 import logging
+from typing import Optional
 
 
 # Logger beállítása
@@ -94,17 +95,17 @@ async def upload_audio(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=f"Nem sikerült feldolgozni a hangfájlt: {str(e)}")
 
 
-# Eredmények megjelenítése a results.html oldalon
 @app.get("/results")
-async def results_page(request: Request):
-    data = generate_data()
+async def results_page(request: Request, param1: Optional[str] = None, param2: Optional[int] = None):
+    # Itt feldolgozhatod a paramétereket
+    data = generate_data(param1, param2)  # Példa a paraméterek továbbítására
     return templates.TemplateResponse("results.html", {
         "request": request,
+        "name":param1,
         "items": data['items'],
         "best_item_id": data['best_item_id'],
         "best_item_explanation": data['best_item_explanation']
     })
-
 
 
 if __name__ == "__main__":
