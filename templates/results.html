@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results</title>
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .item {
+            margin: 10px 0;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            text-align: left;
+        }
+
+        .best-item {
+            background-color: #f0f8ff;
+            border-color: #008cba;
+        }
+
+        img {
+            max-width: 150px;
+            display: block;
+            margin: 0 auto 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Generated Results</h1>
+        <div id="results-container">
+            {% for item in items %}
+                <div class="item {% if item.id == best_item_id %}best-item{% endif %}">
+                    <img src="{{ item.image }}" alt="{{ item.name }}">
+                    <h3>{{ item.name }}</h3>
+                    <p>{{ item.description }}</p>
+                    <p>Rating: {{ item.rating }}</p>
+                    {% if item.id == best_item_id %}
+                        <p><strong>{{ best_item_explanation }}</strong></p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
