@@ -26,14 +26,14 @@ document.addEventListener('DOMContentLoaded', function() {
         strokeDashoffset: [anime.setDashoffset, 0],
         easing: 'easeInOutQuint',
         duration: 1900,
-        complete: function() {
-            anime({
-                targets: '#triangle path',
-                fill: '#008bad',
-                duration: 500,
-                easing: 'easeOutCubic'
-            });
-        }
+    });
+
+    anime({
+        targets: '#triangle path',
+        fill: '#008bad',
+        duration: 500,
+        delay: 1500,
+        easing: 'easeOutCubic'
     });
 
 });
