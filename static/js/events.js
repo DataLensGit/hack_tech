@@ -10,6 +10,8 @@ document.addEventListener('DOMContentLoaded', function () {
         mainLeft.addEventListener('click', function () {
             mainLeft.classList.add('active');
             mainRight.classList.remove('active');
+            mainLeft.classList.add('clicked');
+            mainRight.classList.add('clicked');
     
             gsap.to('.main-page h2', {
                 y: 80,
@@ -41,6 +43,8 @@ document.addEventListener('DOMContentLoaded', function () {
         mainRight.addEventListener('click', function () {
             mainRight.classList.add('active');
             mainLeft.classList.remove('active');
+            mainLeft.classList.add('clicked');
+            mainRight.classList.add('clicked');
     
             gsap.to(mainRight.querySelector('h2'), {
                 y: 80,
