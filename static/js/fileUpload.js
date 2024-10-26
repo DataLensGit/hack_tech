@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     window.location.href = '/results?param1=Candidate&param2=Vagyamitakarsz';
                 } else {
                     window.location.href = '/results?param1=Candidate&param2=Vagyamitakarsz';
+                }
             } catch (error) {
                 console.error('Hiba a fájl feltöltése közben:', error);
             }
