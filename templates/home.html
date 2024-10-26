@@ -69,9 +69,6 @@
                 <h5>
                     Write your job description here, or 
                     <a id="transcript">use voice transcription</a>:
-                    <div class="icon">
-                        <img src="/static/img/microphone.png" alt="Voice transcription">
-                    </div>
                 </h5>
                 <textarea id="job-description" name="job-description"></textarea>
                 <button id="submit-job" class="primary-link">Submit</button>
@@ -82,6 +79,14 @@
         <div class="inner">
             <img src="/static/img/loader.gif" alt="Loading...">
             <p>Analyzing data...</p>
+        </div>
+    </div>
+    <div class="microphone">
+        <div class="inner">
+            <div class="icon">
+                <img src="/static/img/microphone.png" alt="Voice transcription">
+            </div>
+            <button class="primary-link">Stop transcript</button>
         </div>
     </div>
 </body>
