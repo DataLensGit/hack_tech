@@ -36,7 +36,4 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    let mainLeft = document.querySelector('.main-page .left');
-    let mainRight = document.querySelector('.main-page .right');
-
 });

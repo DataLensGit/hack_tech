@@ -55,8 +55,7 @@ section {
     overflow: hidden;
 }
 
-.main-page .left,
-.main-page .right {
+.main-page .side{
     width: 56vw;
     height: 100vh;
     display: flex;
@@ -68,6 +67,11 @@ section {
     padding: 10vw;
     cursor: pointer;
     overflow: hidden;
+}
+
+.main-page .side.active {
+    z-index: 1;
+    cursor: default;
 }
 
 .main-page .left {
@@ -98,8 +102,7 @@ section {
     opacity: 0.45;
 }
 
-.main-page .left:hover .bg,
-.main-page .right:hover .bg {
+.main-page .side:hover .bg {
     height: 106%;
 }
 
@@ -108,6 +111,7 @@ section {
     text-align: center;
     margin: 0 auto;
     max-width: 24vw;
+    pointer-events: none;
 }
 
 .main-page h2 span {
@@ -115,14 +119,94 @@ section {
 }
 
 .main-page .content {
-    position: relative;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
     z-index: 1;
 }
 
 .main-page .left .content {
+    left: 12vw;
     padding-right: 8vw;
 }
 
 .main-page .right .content {
+    right: 12vw;
     padding-left: 8vw;
 }
+
+.main-page .card {
+    width: 40vw;
+    height: 80vh;
+    position: absolute;
+    top: 10vh;
+    background-color: #FFFFFFCC;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 2vw;
+    box-shadow: 0 0 2vw rgba(0, 0, 0, 0.2);
+    display: none;
+    opacity: 0;
+    padding: 3vw;
+}
+
+.main-page .left.active .card {
+    display: flex;
+    animation: fadeIn 0.5s forwards;
+}
+
+.main-page .right.active .card {
+    display: block;
+    animation: fadeIn 0.5s forwards;
+}
+
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.main-page .left .card {
+    right: 20vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.main-page .right .card {
+    right: 20vw;
+}
+
+.main-page h3 {
+    text-align: center;
+    font-size: 2.5vw;
+    margin-bottom: 2vw;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+.file-selector {
+    width: 100%;
+    flex-grow: 1;
+    border: 2px dashed var(--blue);
+    border-radius: 1vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    text-align: center;
+}
+
+.file-selector img {
+    width: 5vw;
+    height: 5vw;
+    margin-bottom: 1vw;
+}
+
