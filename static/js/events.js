@@ -133,7 +133,15 @@ document.addEventListener('DOMContentLoaded', function () {
             console.log(jobDescription.value);
         });
 
-        
+        let transcript = document.querySelector('#transcript');
+
+        if (transcript) {
+            transcript.addEventListener('click', function () {
+                document.querySelector('h5 .icon').classList.toggle('active');
+            });
+        }
+
+
 
     }
 });
