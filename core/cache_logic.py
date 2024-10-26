@@ -51,6 +51,7 @@ def match_industry_keywords(text: str, db: Session) -> List[str]:
     return matched_industries
 
 def preprocess_and_cache():
+    initialize_industry_keywords_cache()
     def cache_text_vector(text: str, index: int, total: int):
         # Minden szál külön adatbázis kapcsolatot használ
         with SessionLocal() as thread_db:

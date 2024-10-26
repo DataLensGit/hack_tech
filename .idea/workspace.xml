@@ -7,6 +7,10 @@
     <list default="true" id="d44df78d-462c-4bb5-9538-7dbdf75d44af" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
+    <list id="a64c9041-028c-45e5-86ec-2205b7d7fb8e" name="Changes by HAdrian" comment="">
+      <change beforePath="$PROJECT_DIR$/core/cache_logic.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/cache_logic.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/matching.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/matching.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -15,21 +19,24 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Python Script" />
         <option value="HTML File" />
+        <option value="Python Script" />
       </list>
     </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="contract-maker" />
+        <entry key="$PROJECT_DIR$" value="master" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GithubDefaultAccount">
     <option name="defaultAccountId" value="83f2c502-e397-4d96-8cb5-bc2feda81db2" />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 7
@@ -45,16 +52,25 @@
     "DefaultHtmlFileTemplate": "HTML File",
     "Python.add_parameter_to_user.executor": "Run",
     "Python.add_testuser.executor": "Run",
+    "Python.cache_logic.executor": "Run",
+    "Python.candidates_models.executor": "Run",
     "Python.controllers.executor": "Run",
+    "Python.convert_to_pdf.executor": "Run",
     "Python.create_new_module.executor": "Run",
     "Python.create_project_structure.executor": "Run",
     "Python.database.executor": "Run",
+    "Python.diktafon.executor": "Run",
     "Python.endpoint_logic.executor": "Run",
+    "Python.extract_cv_info.executor": "Run",
+    "Python.extract_job_info.executor": "Run",
+    "Python.inserting_data.executor": "Run",
+    "Python.job_description_model.executor": "Run",
     "Python.main.executor": "Run",
+    "Python.matching.executor": "Run",
     "Python.reset_database.executor": "Run",
     "Python.test_database.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "master",
+    "git-widget-placeholder": "dev__backend",
     "last_opened_file_path": "C:/Users/Hbali/PycharmProjects/Contract_generator/addons/admin_module/templates",
     "settings.editor.selected.configurable": "org.jetbrains.plugins.github.ui.GithubSettingsConfigurable"
   }
@@ -65,10 +81,11 @@
       <recent name="C:\Users\Hbali\PycharmProjects\Contract_generator\addons" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Hbali\PycharmProjects\base_project\core" />
+      <recent name="C:\Users\Hbali\PycharmProjects\base_project\cv-s" />
       <recent name="C:\Users\Hbali\PycharmProjects\Contract_generator" />
       <recent name="C:\Users\Hbali\PycharmProjects\Base project\static\img" />
       <recent name="C:\Users\Hbali\PycharmProjects\Base project\core" />
-      <recent name="C:\Users\Hbali\PycharmProjects\Base project" />
     </key>
   </component>
   <component name="RunManager">
@@ -200,7 +217,79 @@
       <option name="project" value="LOCAL" />
       <updated>1729925545140</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="init_commit">
+      <option name="closed" value="true" />
+      <created>1729926438690</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1729926438690</updated>
+    </task>
+    <task id="LOCAL-00013" summary="database_init">
+      <option name="closed" value="true" />
+      <created>1729928823566</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1729928823566</updated>
+    </task>
+    <task id="LOCAL-00014" summary="database_init">
+      <option name="closed" value="true" />
+      <created>1729929135404</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1729929135404</updated>
+    </task>
+    <task id="LOCAL-00015" summary="debugbackend">
+      <option name="closed" value="true" />
+      <created>1729935375308</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1729935375308</updated>
+    </task>
+    <task id="LOCAL-00016" summary="offer analysis done">
+      <option name="closed" value="true" />
+      <created>1729941397652</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1729941397652</updated>
+    </task>
+    <task id="LOCAL-00017" summary="matching">
+      <option name="closed" value="true" />
+      <created>1729942966003</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1729942966003</updated>
+    </task>
+    <task id="LOCAL-00018" summary="nemtommennyireszar">
+      <option name="closed" value="true" />
+      <created>1729957715938</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1729957715938</updated>
+    </task>
+    <task id="LOCAL-00019" summary="nemtommennyireszarvedfbergrefbergb">
+      <option name="closed" value="true" />
+      <created>1729965433992</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1729965433992</updated>
+    </task>
+    <task id="LOCAL-00020" summary="nemtommennyireszarvedfbergrefbergb">
+      <option name="closed" value="true" />
+      <created>1729970921528</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1729970921528</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -219,6 +308,12 @@
     <MESSAGE value="first ever commit" />
     <MESSAGE value="heroku test" />
     <MESSAGE value="init_commit" />
-    <option name="LAST_COMMIT_MESSAGE" value="init_commit" />
+    <MESSAGE value="database_init" />
+    <MESSAGE value="debugbackend" />
+    <MESSAGE value="offer analysis done" />
+    <MESSAGE value="matching" />
+    <MESSAGE value="nemtommennyireszar" />
+    <MESSAGE value="nemtommennyireszarvedfbergrefbergb" />
+    <option name="LAST_COMMIT_MESSAGE" value="nemtommennyireszarvedfbergrefbergb" />
   </component>
 </project>
