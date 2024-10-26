@@ -1,10 +1,11 @@
 document.addEventListener('DOMContentLoaded', function () {
     let mainLeft = document.querySelector('.main-page .left');
-    let mainRight = document.querySelector('.main-page .right');
-    let fileSelector = document.querySelector('.file-selector');
-    let cv = document.querySelector('#cv');
-
+    
     if (mainLeft) {
+        let mainRight = document.querySelector('.main-page .right');
+        let fileSelector = document.querySelector('.file-selector');
+        let cv = document.querySelector('#cv');
+        let loader = document.querySelector('.loader');
 
         mainLeft.addEventListener('click', function () {
             mainLeft.classList.add('active');
@@ -103,6 +104,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     
         async function uploadFile(file) {
+            loader.style.display = 'flex';
+            setTimeout(() => {
+                loader.style.opacity = '1';
+            }, 20);
             const formData = new FormData();
             formData.append('file', file);
     
