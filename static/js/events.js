@@ -1,15 +1,15 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     let mainLeft = document.querySelector('.main-page .left');
     let mainRight = document.querySelector('.main-page .right');
     let fileSelector = document.querySelector('.file-selector');
     let cv = document.querySelector('#cv');
 
-    mainLeft.addEventListener('click', function() {
+    mainLeft.addEventListener('click', function () {
 
         mainLeft.classList.add('active');
         mainRight.classList.remove('active');
 
-        gsap.to(mainLeft.querySelector('h2'), {
+        gsap.to('.main-page h2', { 
             y: 80,
             opacity: 0,
             duration: 1.25,
@@ -18,8 +18,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         gsap.to(mainLeft, {
             width: "100vw",
-            duration: 0.85,
-            ease: 'power3.out',
+            duration: 0.75,
+            ease: 'power2.out',
+        });
+
+        gsap.to(mainRight, {
+            width: "20vw",
+            duration: 0.75,
+            ease: 'power2.out',
         });
 
         gsap.to("#triangle", {
@@ -37,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     });
 
-    mainRight.addEventListener('click', function() {
+    mainRight.addEventListener('click', function () {
 
         mainRight.classList.add('active');
         mainLeft.classList.remove('active');
@@ -51,8 +57,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         gsap.to(mainRight, {
             width: "100vw",
-            duration: 1,
-            ease: 'power3.out',
+            duration: 0.75,
+            ease: 'power2.out',
+        });
+
+        gsap.to(mainLeft, {
+            width: "20vw",
+            duration: 0.75,
+            ease: 'power2.out',
         });
 
         gsap.to("#triangle", {
@@ -63,19 +75,60 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    fileSelector.addEventListener('click', function() {
+    // File selector
+
+    fileSelector.addEventListener('click', function () {
         document.querySelector('#cv').click();
     });
 
-    cv.addEventListener('change', function() {
+    cv.addEventListener('change', function () {
         let file = cv.files[0];
-        let reader = new FileReader();
+        uploadFile(file);
+    });
 
-        reader.onload = function(e) {
-            document.querySelector('.file-selector p').innerHTML = file.name;
-        }
 
+    ["dragenter", "dragover", "dragleave", "drop"].forEach(eventName => {
+        fileSelector.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ["dragenter", "dragover"].forEach(eventName => {
+        fileSelector.addEventListener(eventName, () => fileSelector.classList.add("highlight"), false);
+    });
+    ["dragleave", "drop"].forEach(eventName => {
+        fileSelector.addEventListener(eventName, () => fileSelector.classList.remove("highlight"), false);
+    }); 
+
+    fileSelector.addEventListener("drop", handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const file = dt.files[0];
+        uploadFile(file);
+    }
+
+    function uploadFile(file) {
+        const reader = new FileReader();
         reader.readAsDataURL(file);
+        reader.onloadend = () => {
+            // Itt mehet a küldés a backendnek
+            console.log(reader.result);
+            
+        };
+    }
+
+    // Job description send
+
+    let jobDescription = document.querySelector('#job-description');
+    let descriptionSubmit = document.querySelector('#submit-job');
+
+    descriptionSubmit.addEventListener('click', function () {
+        // Itt mehet a küldés a backendnek
+        console.log(jobDescription.value);
     });
 
 

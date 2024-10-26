@@ -48,7 +48,8 @@
                 <h2>I'm <span>looking</span> for a job</h2>
             </div>
             <div class="card">
-                <h3>Upload your CV here:</h3>
+                <h3>We will show you the job that fits you the most!</h3>
+                <h5>Upload your CV here:</h5>
                 <input type="file" id="cv" name="cv" accept=".pdf">
                 <div class="file-selector">
                     <img src="/static/img/file.png" alt="Upload file">
@@ -61,8 +62,19 @@
             <div class="content">
                 <h2>I'm <span>offering</span> a job</h2>
             </div>
-            <div class="card">FOR HR</div>
+            <div class="card">
+                <h3>We will show you the applicants who best fit the job description!</h3>
+                <h5>Write your job description here:</h5>
+                <textarea id="job-description" name="job-description" rows="10"></textarea>
+                <button id="submit-job" class="primary-link">Submit</button>
+            </div>
         </div>
     </section>
+    <div class="loader">
+        <div class="inner">
+            <img src="/static/img/loader.gif" alt="Loading...">
+            <p>Analyzing data...</p>
+        </div>
+    </div>
 </body>
 </html>
