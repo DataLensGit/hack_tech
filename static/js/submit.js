@@ -1,47 +1,64 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener('DOMContentLoaded', () => {
+    const jobDescriptionTextarea = document.getElementById('job-description');
     const submitButton = document.getElementById('submit-job');
     const cvInput = document.getElementById('cv');
+    let attachedFile = null;  // Változó a hozzáadott fájl tárolására
 
-    // Új kulcsszavak hozzáadása
-    document.querySelector('.add-keyword').addEventListener('click', function () {
-        const keywordsContainer = document.querySelector('.keywords');
-        const line = document.createElement('div');
-        line.className = 'line';
+    // Drag and drop események kezelése
+    jobDescriptionTextarea.addEventListener('dragover', (event) => {
+        event.preventDefault(); // Alapértelmezett viselkedés megakadályozása
+        jobDescriptionTextarea.style.border = "2px dashed #4CAF50"; // Vizualis visszajelzés
+    });
 
-        // Új input mezők a kulcsszavakhoz
-        line.innerHTML = `
-            <input type="text" placeholder="Skill/attribute">
-            <input type="text" placeholder="Weight" oninput="this.value = this.value.replace(/[^0-9]/g, '')"><span>%</span>
-        `;
+    jobDescriptionTextarea.addEventListener('dragleave', () => {
+        jobDescriptionTextarea.style.border = ""; // Eredeti stílus visszaállítása
+    });
 
-        keywordsContainer.appendChild(line);
+    jobDescriptionTextarea.addEventListener('drop', (event) => {
+        event.preventDefault();
+        jobDescriptionTextarea.style.border = ""; // Eredeti stílus visszaállítása
+
+        const file = event.dataTransfer.files[0];
+        if (file && file.type === 'application/pdf') {
+            // A fájlt eltároljuk a változóban
+            attachedFile = file;
+
+            // Vizualis visszajelzés a felhasználónak
+            jobDescriptionTextarea.value = `Fájl hozzáadva: ${file.name}`;
+        } else {
+            alert('Csak PDF fájlokat lehet ide húzni.');
+        }
     });
 
     // Submit esemény figyelése
-    submitButton.addEventListener('click', function () {
+    submitButton.addEventListener('click', (event) => {
+        event.preventDefault(); // Megakadályozzuk az alapértelmezett submit viselkedést
+
         const formData = new FormData();
         const industry = document.getElementById('industry').value;
-        const jobDescription = document.getElementById('job-description').value;
-        const cvFile = cvInput.files[0];  // Ha van feltöltött fájl
+        const jobDescription = jobDescriptionTextarea.value;
 
         // Hozzáadjuk az Industry és a jobDescription mezőket
         formData.append('industry', industry);
         formData.append('jobDescription', jobDescription);
 
-        // Ha van csatolt dokumentum, azt is hozzáadjuk
-        if (cvFile) {
-            formData.append('cv', cvFile);
+        // Ha van csatolt fájl, azt is hozzáadjuk
+        if (attachedFile) {
+            formData.append('cv', attachedFile);
         }
 
         // Kulcsszavak összegyűjtése
-        document.querySelectorAll('.keywords .line').forEach((line, index) => {
+        const keywordsArray = [];
+        document.querySelectorAll('.keywords .line').forEach((line) => {
             const skill = line.querySelector('input[type="text"]:first-child').value;
             const weight = line.querySelector('input[type="text"]:nth-child(2)').value;
             if (skill && weight) {
-                formData.append(`keywords[${index}][skill]`, skill);
-                formData.append(`keywords[${index}][weight]`, weight);
+                keywordsArray.push({ skill, weight });
             }
         });
+
+        // Kulcsszavak JSON-ként történő hozzáadása a FormData-hoz
+        formData.append('keywords', JSON.stringify(keywordsArray));
 
         // POST kérés küldése a backendnek
         fetch('/submit-job', {

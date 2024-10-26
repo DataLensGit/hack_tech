@@ -13,6 +13,7 @@ import logging
 from typing import Optional
 from typing import List
 from pydantic import BaseModel
+import json
 
 
 # Logger beállítása
@@ -121,14 +122,23 @@ class JobSubmission(BaseModel):
     keywords: List[Keyword] = []
 
 # Végpont a form adatok és fájl fogadására
+
+class Keyword(BaseModel):
+    skill: str
+    weight: int
+
+# Végpont a form adatok és fájl fogadására
 @app.post("/submit-job")
 async def submit_job(
     industry: str = Form(...),
     jobDescription: Optional[str] = Form(None),
-    keywords: Optional[List[Keyword]] = None,
+    keywords: Optional[str] = Form(None),  # JSON formátumban érkezik
     cv: Optional[UploadFile] = File(None)
 ):
     try:
+        # A JSON-ben érkező kulcsszavak deszerializálása
+        keywords_list = json.loads(keywords) if keywords else []
+
         # Fájl név ellenőrzése (nem olvassuk be a tartalmát)
         if cv:
             cv_filename = cv.filename
@@ -137,14 +147,14 @@ async def submit_job(
         # Logikailag feldolgozhatod az adatokat
         print("Industry:", industry)
         print("Job Description:", jobDescription)
-        print("Keywords:", keywords)
+        print("Keywords:", keywords_list)
 
         # Visszaadunk egy válasz üzenetet
         return {
             "status": "success",
             "industry": industry,
             "jobDescription": jobDescription,
-            "keywords": keywords,
+            "keywords": keywords_list,
             "cv_filename": cv_filename if cv else None
         }
     except Exception as e:

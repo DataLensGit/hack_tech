@@ -4,12 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d44df78d-462c-4bb5-9538-7dbdf75d44af" name="Changes" comment="Wrong endpoints delete">
-      <change afterPath="$PROJECT_DIR$/static/js/submit.js" afterDir="false" />
+    <list default="true" id="d44df78d-462c-4bb5-9538-7dbdf75d44af" name="Changes" comment="Ez se lesz jó de updatelni kell">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/events.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/events.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/home.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/home.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/submit.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/submit.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -301,7 +299,23 @@
       <option name="project" value="LOCAL" />
       <updated>1729966576197</updated>
     </task>
-    <option name="localTasksCounter" value="23" />
+    <task id="LOCAL-00023" summary="Endpoint for submit.js">
+      <option name="closed" value="true" />
+      <created>1729970137944</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1729970137944</updated>
+    </task>
+    <task id="LOCAL-00024" summary="Ez se lesz jó de updatelni kell">
+      <option name="closed" value="true" />
+      <created>1729970706128</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1729970706128</updated>
+    </task>
+    <option name="localTasksCounter" value="25" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -341,6 +355,8 @@
     <MESSAGE value="Nagyon nagy szopás vége" />
     <MESSAGE value="Endpontok a keywordsok" />
     <MESSAGE value="Wrong endpoints delete" />
-    <option name="LAST_COMMIT_MESSAGE" value="Wrong endpoints delete" />
+    <MESSAGE value="Endpoint for submit.js" />
+    <MESSAGE value="Ez se lesz jó de updatelni kell" />
+    <option name="LAST_COMMIT_MESSAGE" value="Ez se lesz jó de updatelni kell" />
   </component>
 </project>
