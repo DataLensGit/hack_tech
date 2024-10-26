@@ -35,7 +35,7 @@ def extract_job_info(job_text):
     "JobTitle", "CompanyOverview", "IndustryFields", "KeyResponsibilities", "RequiredQualifications", "PreferredSkills", "Benefits".
 
     For "PreferredSkills" and "Benefits", list each item individually without grouping. Do not combine different skills or benefits into a single entry. Use short, precise phrases for each item, for example HTML CSS javascript should be 3 different item, try to use only 1-2 word/skills.
-    Don't leave anything blank, specific softwares should be listed in preferredskills.
+    Don't leave anything blank, specific softwares should be listed in preferredskills. Determining the industry field is MANDATORY!
     Example format:
     {{
         "JobTitle": "Senior Software Engineer",
@@ -105,6 +105,7 @@ def save_job_description_to_db(extracted_info, db_session):
         return
 
     try:
+        # Save basic job description information
         job_description = JobDescription(
             job_title=extracted_info.get("JobTitle", "N/A"),
             company_overview=extracted_info.get("CompanyOverview", "N/A")
@@ -113,6 +114,7 @@ def save_job_description_to_db(extracted_info, db_session):
         db_session.commit()
         db_session.refresh(job_description)
 
+        # Save industry fields
         for industry in extracted_info.get("IndustryFields", []):
             new_industry = IndustryField(
                 industry_name=industry,
@@ -120,6 +122,7 @@ def save_job_description_to_db(extracted_info, db_session):
             )
             db_session.add(new_industry)
 
+        # Save responsibilities
         for responsibility in extracted_info.get("KeyResponsibilities", []):
             new_responsibility = Responsibility(
                 description=responsibility,
@@ -127,6 +130,7 @@ def save_job_description_to_db(extracted_info, db_session):
             )
             db_session.add(new_responsibility)
 
+        # Save qualifications
         for qualification in extracted_info.get("RequiredQualifications", []):
             new_qualification = Qualification(
                 description=qualification,
@@ -134,37 +138,21 @@ def save_job_description_to_db(extracted_info, db_session):
             )
             db_session.add(new_qualification)
 
+        # Save preferred skills
         for skill in extracted_info.get("PreferredSkills", []):
-            if "," in skill:
-                individual_skills = [s.strip() for s in skill.split(",")]
-                for ind_skill in individual_skills:
-                    new_skill = PreferredSkill(
-                        skill_name=ind_skill,
-                        job_description_id=job_description.id
-                    )
-                    db_session.add(new_skill)
-            else:
-                new_skill = PreferredSkill(
-                    skill_name=skill,
-                    job_description_id=job_description.id
-                )
-                db_session.add(new_skill)
+            new_skill = PreferredSkill(
+                skill_name=skill,
+                job_description_id=job_description.id
+            )
+            db_session.add(new_skill)
 
+        # Save benefits
         for benefit in extracted_info.get("Benefits", []):
-            if "," in benefit:
-                individual_benefits = [b.strip() for b in benefit.split(",")]
-                for ind_benefit in individual_benefits:
-                    new_benefit = Benefit(
-                        description=ind_benefit,
-                        job_description_id=job_description.id
-                    )
-                    db_session.add(new_benefit)
-            else:
-                new_benefit = Benefit(
-                    description=benefit,
-                    job_description_id=job_description.id
-                )
-                db_session.add(new_benefit)
+            new_benefit = Benefit(
+                description=benefit,
+                job_description_id=job_description.id
+            )
+            db_session.add(new_benefit)
 
         db_session.commit()
         print(f"Sikeresen mentettük az adatokat: {job_description.job_title}")

@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, Text
 from sqlalchemy.orm import relationship
 from core.database import Base
 from sqlalchemy import Column, Integer, String, ForeignKey
-from core.database import Base
+
 # Új táblázat az iparági tapasztalatok tárolására
 class IndustryField(Base):
     __tablename__ = "industry_fields"
@@ -10,10 +10,6 @@ class IndustryField(Base):
     id = Column(Integer, primary_key=True, index=True)
     industry_name = Column(String(255), nullable=False)  # Pl. "Retail", "Banking"
     job_description_id = Column(Integer, ForeignKey('job_descriptions.id'), nullable=False)
-
-    # Kapcsolat a munkaleírással
-    job_description = relationship("JobDescription", back_populates="industries")
-
 class JobDescription(Base):
     __tablename__ = "job_descriptions"
 
@@ -26,9 +22,6 @@ class JobDescription(Base):
     qualifications = relationship("Qualification", back_populates="job_description", cascade="all, delete-orphan")
     skills = relationship("PreferredSkill", back_populates="job_description", cascade="all, delete-orphan")
     benefits = relationship("Benefit", back_populates="job_description", cascade="all, delete-orphan")
-
-    # Kapcsolat az iparági tapasztalatokhoz
-    industries = relationship("IndustryField", back_populates="job_description", cascade="all, delete-orphan")
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from core.database import Base

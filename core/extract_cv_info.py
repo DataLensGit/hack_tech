@@ -30,34 +30,52 @@ def extract_cv_info(cv_text, file_name):
     prompt = f"""
     The file name of the CV is: {file_name}.
     Extract the following data from the candidate's CV. Provide the information in JSON format with the keys:
-    "IndustryExperience", "TechnicalSkills", "RelevantCertifications", "JobTitles", "Responsibilities", "ToolsTechnologies", "FirstName", "LastName", "Email", "Languages", "Education".
+    "FirstName", "LastName", "Email", "PhoneNumber", "Location", "LinkedInURL", "Summary",
+    "Education", "Experience", "TechnicalSkills", "Languages", "RelevantCertifications", "Projects", "Attachments".
 
     Each section should be structured as follows:
 
-    - Languages: A list of dictionaries with "Language" and "Proficiency" (e.g., Fluent, Intermediate).
     - Education: A list of dictionaries with "Degree", "FieldOfStudy", "Institution", "StartYear", and "EndYear".
+    - Experience: A list of dictionaries with "JobTitle", "Company", "Location", "StartYear", "EndYear", and "Description".
+    - TechnicalSkills: A list of dictionaries with "SkillName" and "Level" (e.g., Expert, Intermediate, Beginner).
+    - Languages: A list of dictionaries with "Language" and "Proficiency" (e.g., Fluent, Intermediate).
+    - RelevantCertifications: A list of dictionaries with "CertificationName", "IssuingOrganization", "IssueYear", "ExpirationYear", and "CertificateURL".
+    - Projects: A list of dictionaries with "ProjectName", "Description", "StartYear", "EndYear", and "ProjectURL".
+    - Attachments: A list of dictionaries with "FileName", "FilePath", and "UploadDate".
 
     Example format:
     {{
         "FirstName": "John",
         "LastName": "Doe",
         "Email": "johndoe@example.com",
-        "IndustryExperience": ["Banking", "Healthcare"],
+        "PhoneNumber": "+1234567890",
+        "Location": "New York, USA",
+        "LinkedInURL": "https://www.linkedin.com/in/johndoe/",
+        "Summary": "Experienced software engineer with expertise in backend systems and cloud solutions.",
+        "Education": [
+            {{"Degree": "Bachelor of Science", "FieldOfStudy": "Computer Science", "Institution": "XYZ University", "StartYear": 2015, "EndYear": 2019}},
+            {{"Degree": "Master of Science", "FieldOfStudy": "Data Science", "Institution": "ABC University", "StartYear": 2020, "EndYear": 2022}}
+        ],
+        "Experience": [
+            {{"JobTitle": "Software Engineer", "Company": "Tech Solutions", "Location": "San Francisco", "StartYear": 2019, "EndYear": 2021, "Description": "Developed backend APIs."}},
+            {{"JobTitle": "Senior Developer", "Company": "Innovate Corp", "Location": "New York", "StartYear": 2021, "EndYear": 2023, "Description": "Led a team of developers."}}
+        ],
         "TechnicalSkills": [
             {{"SkillName": "Python", "Level": "Expert"}},
             {{"SkillName": "JavaScript", "Level": "Intermediate"}}
         ],
-        "RelevantCertifications": ["AWS Certified Solutions Architect", "Certified Scrum Master"],
-        "JobTitles": ["Software Engineer", "Backend Developer"],
-        "Responsibilities": ["Led a team of 5 developers", "Implemented CI/CD pipelines"],
-        "ToolsTechnologies": ["Docker", "Kubernetes", "AWS", "React"],
         "Languages": [
             {{"Language": "English", "Proficiency": "Fluent"}},
             {{"Language": "French", "Proficiency": "Intermediate"}}
         ],
-        "Education": [
-            {{"Degree": "Bachelor of Science", "FieldOfStudy": "Computer Science", "Institution": "XYZ University", "StartYear": 2015, "EndYear": 2019}},
-            {{"Degree": "Master of Science", "FieldOfStudy": "Data Science", "Institution": "ABC University", "StartYear": 2020, "EndYear": 2022}}
+        "RelevantCertifications": [
+            {{"CertificationName": "AWS Certified Solutions Architect", "IssuingOrganization": "Amazon", "IssueYear": 2021, "ExpirationYear": 2024, "CertificateURL": "https://aws.com/certified"}}
+        ],
+        "Projects": [
+            {{"ProjectName": "Project A", "Description": "Built a cloud-based solution.", "StartYear": 2020, "EndYear": 2021, "ProjectURL": "https://project-a.com"}}
+        ],
+        "Attachments": [
+            {{"FileName": "CV_JohnDoe.pdf", "FilePath": "/uploads/CV_JohnDoe.pdf", "UploadDate": "2024-10-26"}}
         ]
     }}
 
@@ -69,7 +87,7 @@ def extract_cv_info(cv_text, file_name):
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.5
+            temperature=0.7
         )
 
         if response and 'choices' in response and len(response['choices']) > 0:
@@ -77,15 +95,15 @@ def extract_cv_info(cv_text, file_name):
             try:
                 return json.loads(content)
             except json.JSONDecodeError:
-                print("Hiba: A ChatGPT API válasza nem volt érvényes JSON formátumban.")
-                print(f"Kapott tartalom: {content}")
+                print("Error: The ChatGPT API response was not valid JSON format.")
+                print(f"Received content: {content}")
                 return None
         else:
-            print("Hiba: A ChatGPT API nem adott vissza megfelelő választ.")
+            print("Error: The ChatGPT API did not provide a valid response.")
             return None
 
     except Exception as e:
-        print(f"Hiba történt a ChatGPT API hívása közben: {e}")
+        print(f"Error occurred during ChatGPT API call: {e}")
         return None
 
 
@@ -117,83 +135,34 @@ def save_extracted_data_to_db(extracted_info, file_name, db_session):
     if not extracted_info:
         return
 
-    print(f"\n=== Kinyert adatok ({file_name}) ===\n")
+    print(f"\n=== Extracted Data ({file_name}) ===\n")
     print(json.dumps(extracted_info, indent=2, ensure_ascii=False))
 
+    # Save the basic candidate information
     first_name = extracted_info.get("FirstName", "N/A")
     last_name = extracted_info.get("LastName", "N/A")
     email = extracted_info.get("Email", "N/A")
+    phone_number = extracted_info.get("PhoneNumber")
+    location = extracted_info.get("Location")
+    linkedin_url = extracted_info.get("LinkedInURL")
+    summary = extracted_info.get("Summary")
 
     candidate = create_candidate(
         db=db_session,
         first_name=first_name,
         last_name=last_name,
         email=email,
+        phone_number=phone_number,
+        location=location,
+        linkedin_url=linkedin_url,
+        summary=summary
     )
 
-    if "IndustryExperience" in extracted_info:
-        for industry in extracted_info["IndustryExperience"]:
-            add_project(
-                db=db_session,
-                candidate_id=candidate.id,
-                project_name=industry,
-                description=f"Experience in {industry}",
-                start_date=None,
-                end_date=None
-            )
-
-    if "TechnicalSkills" in extracted_info:
-        for skill in extracted_info["TechnicalSkills"]:
-            skill_name = skill.get("SkillName")
-            skill_level = skill.get("Level")
-            add_skill(
-                db=db_session,
-                candidate_id=candidate.id,
-                skill_name=skill_name,
-                skill_level=skill_level
-            )
-
-    if "RelevantCertifications" in extracted_info:
-        for cert in extracted_info["RelevantCertifications"]:
-            add_certificate(
-                db=db_session,
-                candidate_id=candidate.id,
-                certificate_name=cert
-            )
-
-    if "JobTitles" in extracted_info and "Responsibilities" in extracted_info:
-        for job_title, responsibility in zip(extracted_info["JobTitles"], extracted_info["Responsibilities"]):
-            add_experience(
-                db=db_session,
-                candidate_id=candidate.id,
-                job_title=job_title,
-                company=None,
-                description=responsibility
-            )
-
-    if "ToolsTechnologies" in extracted_info:
-        for tool in extracted_info["ToolsTechnologies"]:
-            add_skill(
-                db=db_session,
-                candidate_id=candidate.id,
-                skill_name=tool,
-                skill_level="Intermediate"
-            )
-
-    if "Languages" in extracted_info:
-        for language in extracted_info["Languages"]:
-            add_language(
-                db=db_session,
-                candidate_id=candidate.id,
-                language=language.get("Language"),
-                proficiency=language.get("Proficiency")
-            )
-
+    # Save education details
     if "Education" in extracted_info:
         for edu in extracted_info["Education"]:
             start_year = safe_year_conversion(edu.get("StartYear"))
             end_year = safe_year_conversion(edu.get("EndYear"))
-
             add_education(
                 db=db_session,
                 candidate_id=candidate.id,
@@ -204,13 +173,81 @@ def save_extracted_data_to_db(extracted_info, file_name, db_session):
                 field_of_study=edu.get("FieldOfStudy")
             )
 
-    add_attachment(
-        db=db_session,
-        candidate_id=candidate.id,
-        file_name=file_name,
-        file_path=os.path.abspath(file_name),
-        upload_date=datetime.now()
-    )
+    # Save work experience
+    if "Experience" in extracted_info:
+        for exp in extracted_info["Experience"]:
+            start_year = safe_year_conversion(exp.get("StartYear"))
+            end_year = safe_year_conversion(exp.get("EndYear"))
+            add_experience(
+                db=db_session,
+                candidate_id=candidate.id,
+                job_title=exp.get("JobTitle"),
+                company=exp.get("Company"),
+                location=exp.get("Location"),
+                start_date=datetime(year=start_year, month=1, day=1) if start_year else None,
+                end_date=datetime(year=end_year, month=1, day=1) if end_year else None,
+                description=exp.get("Description")
+            )
+
+    # Save technical skills
+    if "TechnicalSkills" in extracted_info:
+        for skill in extracted_info["TechnicalSkills"]:
+            add_skill(
+                db=db_session,
+                candidate_id=candidate.id,
+                skill_name=skill.get("SkillName"),
+                skill_level=skill.get("Level")
+            )
+
+    # Save languages
+    if "Languages" in extracted_info:
+        for language in extracted_info["Languages"]:
+            add_language(
+                db=db_session,
+                candidate_id=candidate.id,
+                language=language.get("Language"),
+                proficiency=language.get("Proficiency")
+            )
+
+    # Save certifications
+    if "RelevantCertifications" in extracted_info:
+        for cert in extracted_info["RelevantCertifications"]:
+            add_certificate(
+                db=db_session,
+                candidate_id=candidate.id,
+                certificate_name=cert.get("CertificationName"),
+                issuing_organization=cert.get("IssuingOrganization"),
+                issue_date=datetime(year=safe_year_conversion(cert.get("IssueYear")), month=1, day=1),
+                expiration_date=datetime(year=safe_year_conversion(cert.get("ExpirationYear")), month=1, day=1) if cert.get("ExpirationYear") else None,
+                certificate_url=cert.get("CertificateURL")
+            )
+
+    # Save projects
+    if "Projects" in extracted_info:
+        for proj in extracted_info["Projects"]:
+            start_year = safe_year_conversion(proj.get("StartYear"))
+            end_year = safe_year_conversion(proj.get("EndYear"))
+            add_project(
+                db=db_session,
+                candidate_id=candidate.id,
+                project_name=proj.get("ProjectName"),
+                description=proj.get("Description"),
+                start_date=datetime(year=start_year, month=1, day=1) if start_year else None,
+                end_date=datetime(year=end_year, month=1, day=1) if end_year else None,
+                url=proj.get("ProjectURL")
+            )
+
+    # Save attachments
+    if "Attachments" in extracted_info:
+        for attach in extracted_info["Attachments"]:
+            add_attachment(
+                db=db_session,
+                candidate_id=candidate.id,
+                file_name=attach.get("FileName"),
+                file_path=attach.get("FilePath"),
+                upload_date=datetime.now()
+            )
+
 
 
 # Function to process a single CV file

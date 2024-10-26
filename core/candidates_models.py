@@ -24,7 +24,7 @@ class Candidate(Base):
     certificates = relationship("Certificate", back_populates="candidate", cascade="all, delete-orphan")
     projects = relationship("Project", back_populates="candidate", cascade="all, delete-orphan")
     attachments = relationship("Attachment", back_populates="candidate", cascade="all, delete-orphan")
-
+    industries = relationship("CandidateIndustryCache", back_populates="candidate", cascade="all, delete-orphan")
 
 # Education model to store education details
 class Education(Base):

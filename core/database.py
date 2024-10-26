@@ -10,7 +10,11 @@ DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://testuser:ls47zGNb/3w07KvP
 # Adatbázis motor létrehozása
 try:
     print(f"Kapcsolódás az adatbázishoz: {DATABASE_URL}")
-    engine = create_engine(DATABASE_URL)
+    engine = create_engine(DATABASE_URL,
+                                    pool_size=10,  # Alapértelmezett érték: 5
+                                    max_overflow=20,  # Alapértelmezett érték: 10
+                                    pool_timeout=60,  # A kapcsolat várakozási ideje másodpercben
+                                                        )
     print("Sikeresen létrehoztuk az adatbázis motort.")
 except Exception as e:
     print(f"Hiba az adatbázis motor létrehozásakor: {e}")

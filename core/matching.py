@@ -1,95 +1,191 @@
 import numpy as np
 from typing import List, Dict
 from sqlalchemy.orm import Session
-from core.database import SessionLocal
-from candidates_models import Candidate, Experience, Skill  # Import your candidate models here
+from core.database import SessionLocal, engine
+from candidates_models import Candidate, Experience, Skill
 from job_description_model import JobDescription, Responsibility, Qualification, PreferredSkill, IndustryField
+from cache_model import TextVectorCache, CandidateJobScore, CandidateIndustryCache  # Az új adatbázis táblák importálása
+from INDUSTRY_KEYWORDS import INDUSTRY_KEYWORDS
+import spacy
+import pickle  # A vektorok bináris tárolásához
+from concurrent.futures import ThreadPoolExecutor
 
 # Constants for weightage
 INDUSTRY_KNOWLEDGE_WEIGHT = 0.10
 TECHNICAL_SKILLS_WEIGHT = 0.30
 JOB_MATCHING_WEIGHT = 0.60
 
-# Function to calculate Industry Knowledge Score
-def calculate_industry_score(candidate: Candidate, job_description: JobDescription) -> float:
-    # Csak azok az iparágak kerüljenek be, ahol az exp.company nem None
-    candidate_industries = {exp.company.lower() for exp in candidate.experiences if exp.company}
-    job_industries = {industry.industry_name.lower() for industry in job_description.industries}
+# SpaCy betöltése
+try:
+    nlp = spacy.load("en_core_web_md")
+except OSError:
+    import subprocess
+    import sys
+    print("The 'en_core_web_md' model is not installed. Installing...")
+    subprocess.check_call([sys.executable, "-m", "spacy", "download", "en_core_web_md"])
+    nlp = spacy.load("en_core_web_md")
 
-    print(f"\n--- Calculating Industry Score ---")
-    print(f"Candidate Industries: {candidate_industries}")
-    print(f"Job Industries: {job_industries}")
+# Vektorizáció cache-elése
+def get_cached_vector(text: str, db: Session):
+    try:
+        # Ellenőrizzük, hogy a vektor már a cache-ben van-e
+        cached = db.query(TextVectorCache).filter_by(text=text).first()
+        if cached:
+            # Vektor betöltése az adatbázisból
+            vector = pickle.loads(cached.vector)
+            print(f"Vector found in cache for text: '{text}'")
+            return vector
+        else:
+            # Vektor kiszámítása és mentése a cache-be
+            print(f"Calculating and caching vector for text: '{text}'")
+            doc = nlp(text)
+            vector = doc.vector
+            # Vektor mentése az adatbázisba
+            cached_vector = TextVectorCache(
+                text=text,
+                vector=pickle.dumps(vector)
+            )
+            db.add(cached_vector)
+            db.flush()  # Flush a változások írása előtt
+            db.commit()  # Elmentjük az adatbázisba
+            return vector
+    except Exception as e:
+        db.rollback()
+        print(f"Error during vector caching for text '{text}': {e}")
+        raise e
 
-    if not job_industries:
-        print("No industry specified in the job description.")
+# Kulcsszavak alapján iparági kategorizálás
+def match_industry_keywords(text: str, db: Session) -> List[str]:
+    matched_industries = []
+    cleaned_text = text.lower().strip()
+
+    if not cleaned_text:
+        return matched_industries
+
+    # Szöveg vektor lekérése cache-ből vagy vektorizáció
+    text_vector = get_cached_vector(cleaned_text, db)
+
+    if np.linalg.norm(text_vector) == 0:
+        print("The provided text does not have valid vectors.")
+        return matched_industries
+
+    for industry, keywords in INDUSTRY_KEYWORDS.items():
+        similarity_scores = []
+
+        for keyword in keywords:
+            keyword_clean = keyword.lower().strip()
+            # Kulcsszó vektor lekérése
+            keyword_vector = get_cached_vector(keyword_clean, db)
+
+            if np.linalg.norm(keyword_vector) > 0:
+                # Koszinusz hasonlóság számítása
+                similarity = np.dot(text_vector, keyword_vector) / (np.linalg.norm(text_vector) * np.linalg.norm(keyword_vector))
+                similarity_scores.append(similarity)
+
+        if similarity_scores:
+            # Átlagos hasonlóság egy iparág számára
+            average_similarity = sum(similarity_scores) / len(similarity_scores)
+
+            # Szigorúbb küszöbérték
+            if average_similarity > 0.45:
+                matched_industries.append(industry)
+
+    return matched_industries
+
+# Iparági Pontszám Számítása Cache Használatával
+def calculate_industry_score_cached(candidate: Candidate, job_description: JobDescription, db: Session) -> float:
+    candidate_industries = db.query(CandidateIndustryCache).filter_by(candidate_id=candidate.id).all()
+    job_industries = [industry.industry_name for industry in job_description.industries if industry.industry_name]
+
+    if not candidate_industries or not job_industries:
+        print(f"No industry data available for comparison.")
         return 0.0
 
-    # Check if the candidate has experience in the relevant industries
-    if candidate_industries.intersection(job_industries):
-        print("Direct industry match found. Full score awarded.")
-        return 100.0
-    elif any(industry in candidate_industries for industry in job_industries):
-        print("Partial industry match found. Partial score awarded.")
-        return 50.0
-    else:
-        print("No relevant industry experience.")
-        return 0.0
+    matching_fields = set([ci.industry_name for ci in candidate_industries]).intersection(set(job_industries))
+    total_fields = len(job_industries)
 
-# Function to calculate Technical Skills Score
-def calculate_technical_skills_score(candidate: Candidate, job_description: JobDescription) -> float:
-    required_skills = {skill.skill_name.lower() for skill in job_description.skills}
-    candidate_skills = {skill.skill_name.lower() for skill in candidate.skills}
+    match_percentage = (len(matching_fields) / total_fields) * 100
+    print(f"Matching Fields (Cached): {matching_fields}")
+    print(f"Match Percentage (Cached): {match_percentage}%")
 
-    print(f"\n--- Calculating Technical Skills Score ---")
-    print(f"Required Skills: {required_skills}")
-    print(f"Candidate Skills: {candidate_skills}")
+    return match_percentage
+
+# Technikai Skillek Pontszám Számítása Cache Használatával
+def calculate_technical_skills_score_cached(candidate: Candidate, job_description: JobDescription,
+                                            threshold: float = 0.6, db: Session = None) -> float:
+
+    required_skills = [skill.skill_name.lower() for skill in job_description.skills if skill.skill_name]
+    candidate_skills = [skill.skill_name.lower() for skill in candidate.skills if skill.skill_name]
 
     if not required_skills:
         print("No skills required in the job description.")
         return 0.0
 
-    matched_skills = required_skills.intersection(candidate_skills)
-    unmatched_skills = required_skills.difference(candidate_skills)
-
-    print(f"Matched Skills: {matched_skills}")
-    print(f"Unmatched Skills: {unmatched_skills}")
-
-    # Score based on the number of matched skills and their weightage
-    total_weight = 100
-    matched_weight = (len(matched_skills) / len(required_skills)) * total_weight
-    print(f"Technical Skills Score: {matched_weight}")
-    return matched_weight
-
-# Function to calculate Job Description Matching Score
-def calculate_job_matching_score(candidate: Candidate, job_description: JobDescription) -> float:
-    candidate_experience_text = " ".join([exp.description.lower() for exp in candidate.experiences])
-    job_requirements_text = " ".join([resp.description.lower() for resp in job_description.responsibilities])
-
-    print(f"\n--- Calculating Job Matching Score ---")
-    print(f"Candidate Experience Text: {candidate_experience_text}")
-    print(f"Job Requirements Text: {job_requirements_text}")
-
-    # Basic keyword matching for relevance score (e.g., overlap ratio)
-    common_keywords = set(candidate_experience_text.split()).intersection(set(job_requirements_text.split()))
-    total_keywords = set(job_requirements_text.split())
-
-    print(f"Common Keywords: {common_keywords}")
-    print(f"Total Keywords in Job Description: {total_keywords}")
-
-    if not total_keywords:
-        print("No specific requirements in job description.")
+    if not candidate_skills:
+        print(f"No skills found for Candidate: {candidate.first_name} {candidate.last_name}")
         return 0.0
 
-    match_ratio = len(common_keywords) / len(total_keywords)
-    print(f"Job Matching Score: {match_ratio * 100.0}")
-    return match_ratio * 100.0
+    total_score = 0
 
-# Function to calculate Final Score for a Candidate
-def calculate_final_score(candidate: Candidate, job_description: JobDescription) -> float:
+    for req_skill in required_skills:
+        req_vector = get_cached_vector(req_skill, db)
+        if np.linalg.norm(req_vector) == 0:
+            continue
+        max_similarity = 0
+        for cand_skill in candidate_skills:
+            cand_vector = get_cached_vector(cand_skill, db)
+            if np.linalg.norm(cand_vector) == 0:
+                continue
+            similarity = np.dot(req_vector, cand_vector) / (np.linalg.norm(req_vector) * np.linalg.norm(cand_vector))
+            if similarity > max_similarity:
+                max_similarity = similarity
+
+        if max_similarity >= threshold:
+            total_score += max_similarity
+
+    technical_score = (total_score / len(required_skills)) * 100 if required_skills else 0.0
+    print(f"Technical Skills Score (Cached): {technical_score}")
+
+    return technical_score
+# Job Description Matching Score számítása
+def calculate_job_matching_score(candidate: Candidate, job_description: JobDescription, db: Session) -> float:
+    candidate_experience_text = " ".join([exp.description.lower() for exp in candidate.experiences if exp.description]).strip()
+    job_requirements_text = " ".join([resp.description.lower() for resp in job_description.responsibilities if resp.description]).strip()
+
+    if not candidate_experience_text:
+        print("No candidate experience data available.")
+        return 0.0
+
+    if not job_requirements_text:
+        print("No job requirements data available.")
+        return 0.0
+
+    # Szöveg vektorok lekérése
+    candidate_vector = get_cached_vector(candidate_experience_text, db)
+    job_vector = get_cached_vector(job_requirements_text, db)
+
+    if np.linalg.norm(candidate_vector) == 0 or np.linalg.norm(job_vector) == 0:
+        print("No valid vectors for similarity calculation.")
+        return 0.0
+
+    # Koszinusz hasonlóság számítása
+    similarity = np.dot(candidate_vector, job_vector) / (np.linalg.norm(candidate_vector) * np.linalg.norm(job_vector))
+    job_matching_score = similarity * 100
+    print(f"Job Matching Score: {job_matching_score}")
+    return job_matching_score
+
+# Pontszámok kiszámítása és mentése
+def calculate_and_save_final_score(candidate: Candidate, job_description: JobDescription, db: Session):
     print(f"\n=== Calculating Final Score for Candidate: {candidate.first_name} {candidate.last_name} ===")
-    industry_score = calculate_industry_score(candidate, job_description)
-    technical_score = calculate_technical_skills_score(candidate, job_description)
-    job_matching_score = calculate_job_matching_score(candidate, job_description)
+
+    existing_score = db.query(CandidateJobScore).filter_by(candidate_id=candidate.id, job_id=job_description.id).first()
+    if existing_score:
+        print("Score already calculated and saved.")
+        return existing_score.final_score
+
+    industry_score = calculate_industry_score_cached(candidate, job_description, db)
+    technical_score = calculate_technical_skills_score_cached(candidate, job_description, db=db)
+    job_matching_score = calculate_job_matching_score(candidate, job_description, db)
 
     print(f"Industry Score: {industry_score}")
     print(f"Technical Skills Score: {technical_score}")
@@ -102,23 +198,43 @@ def calculate_final_score(candidate: Candidate, job_description: JobDescription)
     )
 
     print(f"Final Score: {final_score}")
+
+    candidate_job_score = CandidateJobScore(
+        candidate_id=candidate.id,
+        job_id=job_description.id,
+        industry_score=industry_score,
+        technical_score=technical_score,
+        job_matching_score=job_matching_score,
+        final_score=final_score
+    )
+    db.add(candidate_job_score)
+    db.commit()
+
     return final_score
 
-# Function to rank candidates for a specific job
+# Jelöltek rangsorolása egy adott állásra
 def rank_candidates_for_job(job_description: JobDescription, db: Session, top_n: int = 5) -> List[Dict]:
     candidates = db.query(Candidate).all()
     scores = []
 
     print(f"\n=== Ranking Candidates for Job: {job_description.job_title} ===")
 
-    for candidate in candidates:
-        score = calculate_final_score(candidate, job_description)
-        scores.append({"candidate": candidate, "score": score})
+    def get_score_for_candidate(candidate):
+        existing_score = db.query(CandidateJobScore).filter_by(candidate_id=candidate.id, job_id=job_description.id).first()
+        if existing_score:
+            score = existing_score.final_score
+        else:
+            score = calculate_and_save_final_score(candidate, job_description, db)
+        return {
+            "candidate": candidate,
+            "score": score
+        }
 
-    # Sort candidates by score in descending order and return top N
-    ranked_candidates = sorted(scores, key=lambda x: x["score"], reverse=True)[:top_n]
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        results = list(executor.map(get_score_for_candidate, candidates))
 
-    # Return the candidates with the final score
+    ranked_candidates = sorted(results, key=lambda x: x["score"], reverse=True)[:top_n]
+
     return [
         {
             "candidate_id": candidate["candidate"].id,
@@ -129,55 +245,39 @@ def rank_candidates_for_job(job_description: JobDescription, db: Session, top_n:
         for candidate in ranked_candidates
     ]
 
-# Function to find best matching job for a specific candidate
-def find_best_matching_job(candidate: Candidate, db: Session) -> Dict:
+# Pontszámok előzetes kiszámítása és eltárolása az adatbázisba
+def precompute_all_scores(db: Session):
+    candidates = db.query(Candidate).all()
     job_descriptions = db.query(JobDescription).all()
-    best_match = None
-    best_score = 0.0
 
-    print(f"\n=== Finding Best Matching Job for Candidate: {candidate.first_name} {candidate.last_name} ===")
+    def compute_for_pair(args):
+        candidate, job_description = args
+        calculate_and_save_final_score(candidate, job_description, db)
 
-    for job_description in job_descriptions:
-        score = calculate_final_score(candidate, job_description)
+    from itertools import product
+    candidate_job_pairs = list(product(candidates, job_descriptions))
 
-        if score > best_score:
-            best_score = score
-            best_match = job_description
+    print(f"\n=== Precomputing Scores for {len(candidate_job_pairs)} Candidate-Job Pairs ===")
 
-    if best_match:
-        print(f"Best Match Found: {best_match.job_title} with Score: {best_score}")
-        return {
-            "job_title": best_match.job_title,
-            "company_overview": best_match.company_overview,
-            "score": best_score
-        }
-    else:
-        print("No suitable job found for the candidate.")
-        return {
-            "message": "No suitable job found for the candidate."
-        }
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        executor.map(compute_for_pair, candidate_job_pairs)
 
-# Example usage
+# Fő folyamat indítása
 if __name__ == "__main__":
     db = SessionLocal()
 
-    # Example to rank candidates for a specific job
-    job_id = 1  # Assume you have a job with ID 1
+    # Előre kiszámítjuk és eltároljuk az összes lehetséges pontszámot
+    precompute_all_scores(db)
+
+    # Példa a jelöltek rangsorolására egy adott állásra
+    job_id = 2  # Tegyük fel, hogy van egy állás azonosítóval 2
+
     job_description = db.query(JobDescription).filter_by(id=job_id).first()
 
     if job_description:
         ranked_candidates = rank_candidates_for_job(job_description, db)
-        print(f"\nTop candidates for job '{job_description.job_title}':")
-        for rank in ranked_candidates:
-            print(rank)
-
-    # Example to find best matching job for a candidate
-    candidate_id = 1  # Assume you have a candidate with ID 1
-    candidate = db.query(Candidate).filter_by(id=candidate_id).first()
-
-    if candidate:
-        best_job = find_best_matching_job(candidate, db)
-        print(f"\nBest matching job for candidate '{candidate.first_name} {candidate.last_name}':")
-        print(best_job)
+        print("\n--- Ranked Candidates ---\n")
+        for candidate in ranked_candidates:
+            print(candidate)
 
     db.close()

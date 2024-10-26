@@ -5,20 +5,18 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d44df78d-462c-4bb5-9538-7dbdf75d44af" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/core/INDUSTRY_KEYWORDS.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/core/cache_model.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/core/embedding_models.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/diktafon.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/addons/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/matching.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/addons/sample_module/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/addons/sample_module/controllers.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/addons/sample_module/models/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/addons/sample_module/models/models.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/addons/sample_module/module_info.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/addons/sample_module/repositories.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/addons/sample_module/templates/module_page.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/endpoint_logic.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/endpoint_logic.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/candidates_models.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/candidates_models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/database.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/database.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/extract_cv_info.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/extract_cv_info.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/extract_job_info.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/extract_job_info.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/job_description_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/job_description_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/matching.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/matching.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -64,9 +62,11 @@
     "Python.create_new_module.executor": "Run",
     "Python.create_project_structure.executor": "Run",
     "Python.database.executor": "Run",
+    "Python.diktafon.executor": "Run",
     "Python.endpoint_logic.executor": "Run",
     "Python.extract_cv_info.executor": "Run",
     "Python.extract_job_info.executor": "Run",
+    "Python.inserting_data.executor": "Run",
     "Python.job_description_model.executor": "Run",
     "Python.main.executor": "Run",
     "Python.matching.executor": "Run",
@@ -260,7 +260,15 @@
       <option name="project" value="LOCAL" />
       <updated>1729941397652</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="matching">
+      <option name="closed" value="true" />
+      <created>1729942966003</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1729942966003</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -282,6 +290,7 @@
     <MESSAGE value="database_init" />
     <MESSAGE value="debugbackend" />
     <MESSAGE value="offer analysis done" />
-    <option name="LAST_COMMIT_MESSAGE" value="offer analysis done" />
+    <MESSAGE value="matching" />
+    <option name="LAST_COMMIT_MESSAGE" value="matching" />
   </component>
 </project>
