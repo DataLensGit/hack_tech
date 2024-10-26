@@ -17,6 +17,16 @@ body {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    line-height: 1.3;
+}
+
+h2 {
+    font-size: 4rem;
+}
+
+section {
+    width: 100vw;
+    overflow-x: hidden;
 }
 
 /* Főoldal */
@@ -35,4 +45,39 @@ body {
     stroke-width: 6;
     stroke-linecap: round;
     stroke-linejoin: round;
+}
+
+.main-page .left,
+.main-page .right {
+    width: 50vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: 0;
+}
+
+.main-page .left {
+    left: 0;
+}
+
+.main-page .right {
+    right: 0;
+}
+
+.main-page .bg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -1;
+}
+
+.main-page .left .bg {
+    object-position: center left;
+}
+
+.main-page .right .bg {
+    object-position: center right;
 }
