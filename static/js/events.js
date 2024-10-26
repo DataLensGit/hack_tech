@@ -141,8 +141,21 @@ document.addEventListener('DOMContentLoaded', function () {
         let transcript = document.querySelector('#transcript');
 
         if (transcript) {
+
+            let microphone = document.querySelector('.microphone');
+
             transcript.addEventListener('click', function () {
-                document.querySelector('h5 .icon').classList.toggle('active');
+                microphone.style.display = 'flex';
+                setTimeout(() => {
+                    microphone.style.opacity = '1';
+                }, 20);
+            });
+
+            microphone.querySelector('.primary-link').addEventListener('click', function () {
+                microphone.style.opacity = '0';
+                setTimeout(() => {
+                    microphone.style.display = 'none';
+                }, 500);
             });
         }
 
