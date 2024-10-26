@@ -5,8 +5,32 @@ from fastapi.templating import Jinja2Templates
 from fastapi import HTTPException, UploadFile, File
 from core.database import engine
 import sys
+import random
 # Templating rendszer (Jinja2)
 templates = Jinja2Templates(directory="templates")
+
+def generate_data():
+    # 5 objektum létrehozása, mindegyik tartalmaz képet, nevet, leírást és értékelést
+    items = []
+    for i in range(1, 6):
+        item = {
+            "id": i,
+            "image": f"/static/img/sample_image_{i}.jpg",
+            "name": f"Item {i}",
+            "description": f"This is a description for item {i}.",
+            "rating": round(random.uniform(1, 5), 2)
+        }
+        items.append(item)
+
+    # Egy elem kiválasztása a legjobbnak
+    best_item = max(items, key=lambda x: x['rating'])
+    best_item["explanation"] = f"This is why item {best_item['id']} is considered the best."
+
+    return {
+        "items": items,
+        "best_item_id": best_item['id'],
+        "best_item_explanation": best_item['explanation']
+    }
 
 def handle_file_upload(file: UploadFile):
     # Ellenőrizzük, hogy a fájl PDF típusú-e
