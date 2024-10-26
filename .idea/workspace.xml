@@ -5,15 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d44df78d-462c-4bb5-9538-7dbdf75d44af" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/core/cache_logic.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/cache_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/cache_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/candidates_models.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/candidates_models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/extract_cv_info.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/extract_cv_info.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/cache_logic.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/cache_logic.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/database.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/database.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/extract_job_info.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/extract_job_info.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/job_description_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/job_description_model.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/matching.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/matching.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/diktafon.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+    </list>
+    <list id="a64c9041-028c-45e5-86ec-2205b7d7fb8e" name="Changes by HAdrian" comment="">
+      <change beforePath="$PROJECT_DIR$/core/matching.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/matching.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -39,6 +40,39 @@
   <component name="GithubDefaultAccount">
     <option name="defaultAccountId" value="83f2c502-e397-4d96-8cb5-bc2feda81db2" />
   </component>
+  <component name="LineStatusTrackerManager">
+    <file path="$PROJECT_DIR$/core/matching.py">
+      <ranges>
+        <range start1="3" end1="7" start2="3" end2="7" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="8" end1="10" start2="8" end2="9" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="18" end1="19" start2="17" end2="18" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="28" end1="29" start2="27" end2="28" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="40" end1="41" start2="39" end2="40" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="61" end1="62" start2="60" end2="62" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="70" end1="72" start2="70" end2="72" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="93" end1="94" start2="93" end2="94" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="98" end1="99" start2="98" end2="99" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="109" end1="110" start2="109" end2="110" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="126" end1="128" start2="126" end2="128" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="136" end1="137" start2="136" end2="137" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="141" end1="148" start2="141" end2="141" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="150" end1="151" start2="143" end2="144" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="153" end1="154" start2="146" end2="147" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="156" end1="157" start2="149" end2="150" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="167" end1="168" start2="160" end2="161" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="175" end1="192" start2="168" end2="169" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="193" end1="196" start2="170" end2="170" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="204" end1="213" start2="178" end2="190" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="232" end1="236" start2="209" end2="217" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="237" end1="238" start2="218" end2="230" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="239" end1="244" start2="231" end2="240" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="245" end1="247" start2="241" end2="243" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+      </ranges>
+    </file>
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 7
 }</component>
@@ -53,6 +87,7 @@
     "DefaultHtmlFileTemplate": "HTML File",
     "Python.add_parameter_to_user.executor": "Run",
     "Python.add_testuser.executor": "Run",
+    "Python.cache_logic.executor": "Run",
     "Python.candidates_models.executor": "Run",
     "Python.controllers.executor": "Run",
     "Python.convert_to_pdf.executor": "Run",
@@ -273,7 +308,15 @@
       <option name="project" value="LOCAL" />
       <updated>1729957715938</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="nemtommennyireszarvedfbergrefbergb">
+      <option name="closed" value="true" />
+      <created>1729965433992</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1729965433992</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -297,6 +340,7 @@
     <MESSAGE value="offer analysis done" />
     <MESSAGE value="matching" />
     <MESSAGE value="nemtommennyireszar" />
-    <option name="LAST_COMMIT_MESSAGE" value="nemtommennyireszar" />
+    <MESSAGE value="nemtommennyireszarvedfbergrefbergb" />
+    <option name="LAST_COMMIT_MESSAGE" value="nemtommennyireszarvedfbergrefbergb" />
   </component>
 </project>

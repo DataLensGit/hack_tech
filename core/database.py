@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
-
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 # PostgreSQL adatbázis elérési út az .env fájlból
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://testuser:ls47zGNb/3w07KvPC3sYEA==@server.datalensglobal.com/hacktech")
@@ -22,7 +22,8 @@ except Exception as e:
 
 # Session local létrehozása
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
+SessionFactory = sessionmaker(bind=engine)
+SessionLocal = scoped_session(SessionFactory)
 # Alapmodell létrehozása
 Base = declarative_base()
 

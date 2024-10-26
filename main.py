@@ -17,12 +17,6 @@ import pdfplumber  # PDF feldolgozás
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Adatbázis táblák létrehozása (ha még nem léteznek)
-try:
-    Base.metadata.create_all(bind=engine)
-    logger.info("A táblák létrehozása sikeresen megtörtént.")
-except Exception as e:
-    logger.error(f"Hiba a táblák létrehozásakor: {e}")
 
 app = FastAPI()
 
@@ -87,6 +81,7 @@ async def process_dataset(db: Session = Depends(get_db)):
 if __name__ == "__main__":
     import uvicorn
     import os
-
+    from core.database import initialize_database
+    initialize_database()
     port = int(os.environ.get("PORT", 8000))  # Heroku-n PORT változó lesz elérhető
     uvicorn.run("main:app", host="localhost", port=port, reload=True)

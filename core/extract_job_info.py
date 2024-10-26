@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 from core.database import SessionLocal
 from datetime import datetime
-from job_description_model import JobDescription, Benefit, Responsibility, Qualification, PreferredSkill, IndustryField
+from core.job_description_model import JobDescription, Benefit, Responsibility, Qualification, PreferredSkill, IndustryField
 from concurrent.futures import ThreadPoolExecutor
 
 # Load environment variables
