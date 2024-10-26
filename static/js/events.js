@@ -173,5 +173,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 }, 500);
             });
         }
+
+        // Adding keywords
+
+        let addKeyword = document.querySelector('.add-keyword');
+
+        if (addKeyword) {
+            let keywords = document.querySelector('.keywords');
+
+            addKeyword.addEventListener('click', function () {
+                let id = keywords.children.length + 1;
+                let keyword = document.createElement('div');
+                keyword.classList.add('keyword');
+                keyword.innerHTML = `
+                    <div class="line">
+                        <input type="text" id="keyword-${id}" name="keyword-${id}" placeholder="Skill/attribute">
+                        <input type="text" id="weight-${id}" name="weight-${id}" placeholder="Weight" oninput="this.value = this.value.replace(/[^0-9]/g, '')"><span>%</span>
+                    </div>
+                `
+                keywords.appendChild(keyword);
+            });
+        }
     }
 });

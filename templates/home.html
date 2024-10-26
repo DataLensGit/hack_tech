@@ -54,12 +54,14 @@
                 <p>I'm <span>looking</span> for a job</p>
             </div>
             <div class="card">
-                <h3>We will show you the job that fits you the most!</h3>
-                <h5>Upload your CV here:</h5>
-                <input type="file" id="cv" name="cv" accept=".pdf">
-                <div class="file-selector">
-                    <img src="/static/img/file.png" alt="Upload file">
-                    <p>Click here, or drag and drop your CV</p>
+                <div class="scroll-container">
+                    <h3>We will show you the job that fits you the most!</h3>
+                    <h5>Upload your CV here:</h5>
+                    <input type="file" id="cv" name="cv" accept=".pdf">
+                    <div class="file-selector">
+                        <img src="/static/img/file.png" alt="Upload file">
+                        <p>Click here, or drag and drop your CV</p>
+                </div>
                 </div>
             </div>
         </div>
@@ -96,11 +98,13 @@
                     </div>
                     <div class="input-group">
                         <label for="keywords">Keywords</label>
-                        <div class="line">
-                            <input type="text" id="keyword-1" name="keyword-1" placeholder="Skill/attribute">
-                            <input type="text" id="weight-1" name="weight-1" placeholder="Weight">%
+                        <div class="keywords">
+                            <div class="line">
+                                <input type="text" id="keyword-1" name="keyword-1" placeholder="Skill/attribute">
+                                <input type="text" id="weight-1" name="weight-1" placeholder="Weight" oninput="this.value = this.value.replace(/[^0-9]/g, '')"><span>%</span>
+                            </div>
                         </div>
-                        <a href="" class="add-keyword">+ Add keyword</a>
+                        <a class="add-keyword">+ Add keyword</a>
                     </div>
                     <button id="submit-job" class="primary-link">Submit</button>
                 </div>

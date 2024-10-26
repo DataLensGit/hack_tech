@@ -212,7 +212,7 @@
     margin: 0 0 0.75vw;
 }
 
-.main-page h5 a {
+.main-page .transcript-button {
     cursor: pointer;
     text-decoration: underline;
 }
@@ -256,28 +256,31 @@ input[type="file"] {
     margin-bottom: 2.5vw;
 }
 
+.input-group {
+    margin-bottom: 0.25vw;
+}
+
 input,
 textarea,
 select {
     width: 100%;
     border: none !important;
-    border-radius: 1vw;
-    padding: 1vw;
-    font-size: 1rem;
+    border-radius: 0.75vw;
+    padding: 0.75vw;
+    font-size: 0.875vw;
     font-family: "Poppins", sans-serif;
     resize: none;
     box-shadow: 0 0 1vw #364f5720;
     transition: box-shadow 0.3s;
     background-color: white;
-    margin-bottom: 0.75vw;
-}
-
-textarea {
-    height: 20vh;
 }
 
 textarea:hover,
-textarea:focus {
+textarea:focus,
+input:hover,
+input:focus,
+select:hover,
+select:focus {
     box-shadow: 0 0 1vw #364f5740;
     outline: none;
 }
@@ -298,12 +301,36 @@ select {
 }
 
 .input-group {
-    position: relative;
+    margin-bottom: 1vw;
 }
 
 .input-group label {
     display: block;
     margin-bottom: 0.5vw;
+    font-size: 0.875vw;
+}
+
+.input-group .line {
+    display: flex;
+    align-items: center;
+    gap: 0.5vw;
+    margin-bottom: 0.5vw;
+}
+
+.input-group .line input:last-of-type {
+    width: 5vw;
+}
+
+.input-group .line span {
+    font-weight: 500;
+    font-size: 1.125vw;
+}
+
+.input-group .add-keyword {
+    text-decoration: underline;
+    font-weight: 500;
+    cursor: pointer;
+    font-size: 0.875vw;
 }
 
 .loader,
