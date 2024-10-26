@@ -206,8 +206,7 @@ def rank_candidates_for_job(job_description: JobDescription, db: Session, top_n:
 
 # Fő folyamat indítása
 if __name__ == "__main__":
-    preprocess_and_cache()  # Ne adj át db-t, mivel a függvény nem vár paramétert
-
+    preprocess_and_cache()
     while True:
         db = SessionLocal()
 

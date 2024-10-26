@@ -7,9 +7,10 @@ from core.database import get_db
 from sqlalchemy.orm import Session
 from fastapi.responses import RedirectResponse
 import logging
-import core.candidates_models
+
 from core.inserting_data import parse_job_description
 from core.job_description_model import JobDescription  # Importáld a JobDescription modellt
+from core.cache_logic import preprocess_and_cache
 
 import pdfplumber  # PDF feldolgozás
 
@@ -83,5 +84,6 @@ if __name__ == "__main__":
     import os
     from core.database import initialize_database
     initialize_database()
+    preprocess_and_cache()  # Ne adj át db-t, mivel a függvény nem vár paramétert
     port = int(os.environ.get("PORT", 8000))  # Heroku-n PORT változó lesz elérhető
     uvicorn.run("main:app", host="localhost", port=port, reload=True)

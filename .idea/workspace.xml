@@ -6,10 +6,14 @@
   <component name="ChangeListManager">
     <list default="true" id="d44df78d-462c-4bb5-9538-7dbdf75d44af" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/cache_logic.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/cache_logic.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/matching.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/matching.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <list id="a64c9041-028c-45e5-86ec-2205b7d7fb8e" name="Changes by HAdrian" comment="">
       <change beforePath="$PROJECT_DIR$/core/cache_logic.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/cache_logic.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/matching.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/matching.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,9 +35,58 @@
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="UPDATE_TYPE" value="REBASE" />
   </component>
   <component name="GithubDefaultAccount">
     <option name="defaultAccountId" value="83f2c502-e397-4d96-8cb5-bc2feda81db2" />
+  </component>
+  <component name="LineStatusTrackerManager">
+    <file path="$PROJECT_DIR$/core/matching.py">
+      <ranges>
+        <range start1="60" end1="61" start2="60" end2="62" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="208" end1="210" start2="209" end2="210" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+      </ranges>
+    </file>
+    <file path="$PROJECT_DIR$/core/cache_logic.py">
+      <ranges>
+        <range start1="1" end1="3" start2="1" end2="3" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="4" end1="9" start2="4" end2="7" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="13" end1="13" start2="11" end2="12" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="15" end1="15" start2="14" end2="37" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="52" end1="52" start2="74" end2="75" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="53" end1="53" start2="76" end2="77" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="54" end1="55" start2="78" end2="78" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="59" end1="60" start2="82" end2="82" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="79" end1="80" start2="101" end2="101" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="86" end1="90" start2="107" end2="110" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="91" end1="98" start2="111" end2="116" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="99" end1="101" start2="117" end2="122" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="102" end1="103" start2="123" end2="123" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="105" end1="106" start2="125" end2="125" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="109" end1="110" start2="128" end2="130" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="111" end1="113" start2="131" end2="133" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="115" end1="117" start2="135" end2="135" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="119" end1="120" start2="137" end2="141" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="136" end1="137" start2="157" end2="157" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="144" end1="145" start2="164" end2="164" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="154" end1="155" start2="173" end2="173" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="157" end1="158" start2="175" end2="175" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="160" end1="161" start2="177" end2="177" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="162" end1="163" start2="178" end2="178" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="165" end1="166" start2="180" end2="180" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="173" end1="174" start2="187" end2="187" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="179" end1="181" start2="192" end2="193" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="183" end1="184" start2="195" end2="196" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+      </ranges>
+    </file>
+    <file path="$PROJECT_DIR$/main.py">
+      <ranges>
+        <range start1="1" end1="3" start2="1" end2="1" changelist="a64c9041-028c-45e5-86ec-2205b7d7fb8e" />
+        <range start1="9" end1="10" start2="7" end2="8" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="12" end1="12" start2="10" end2="11" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="85" end1="85" start2="84" end2="85" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+      </ranges>
+    </file>
   </component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
@@ -47,34 +100,34 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "DefaultHtmlFileTemplate": "HTML File",
-    "Python.add_parameter_to_user.executor": "Run",
-    "Python.add_testuser.executor": "Run",
-    "Python.cache_logic.executor": "Run",
-    "Python.candidates_models.executor": "Run",
-    "Python.controllers.executor": "Run",
-    "Python.convert_to_pdf.executor": "Run",
-    "Python.create_new_module.executor": "Run",
-    "Python.create_project_structure.executor": "Run",
-    "Python.database.executor": "Run",
-    "Python.diktafon.executor": "Run",
-    "Python.endpoint_logic.executor": "Run",
-    "Python.extract_cv_info.executor": "Run",
-    "Python.extract_job_info.executor": "Run",
-    "Python.inserting_data.executor": "Run",
-    "Python.job_description_model.executor": "Run",
-    "Python.main.executor": "Run",
-    "Python.matching.executor": "Run",
-    "Python.reset_database.executor": "Run",
-    "Python.test_database.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "dev__backend",
-    "last_opened_file_path": "C:/Users/Hbali/PycharmProjects/Contract_generator/addons/admin_module/templates",
-    "settings.editor.selected.configurable": "org.jetbrains.plugins.github.ui.GithubSettingsConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
+    &quot;Python.add_parameter_to_user.executor&quot;: &quot;Run&quot;,
+    &quot;Python.add_testuser.executor&quot;: &quot;Run&quot;,
+    &quot;Python.cache_logic.executor&quot;: &quot;Run&quot;,
+    &quot;Python.candidates_models.executor&quot;: &quot;Run&quot;,
+    &quot;Python.controllers.executor&quot;: &quot;Run&quot;,
+    &quot;Python.convert_to_pdf.executor&quot;: &quot;Run&quot;,
+    &quot;Python.create_new_module.executor&quot;: &quot;Run&quot;,
+    &quot;Python.create_project_structure.executor&quot;: &quot;Run&quot;,
+    &quot;Python.database.executor&quot;: &quot;Run&quot;,
+    &quot;Python.diktafon.executor&quot;: &quot;Run&quot;,
+    &quot;Python.endpoint_logic.executor&quot;: &quot;Run&quot;,
+    &quot;Python.extract_cv_info.executor&quot;: &quot;Run&quot;,
+    &quot;Python.extract_job_info.executor&quot;: &quot;Run&quot;,
+    &quot;Python.inserting_data.executor&quot;: &quot;Run&quot;,
+    &quot;Python.job_description_model.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;Python.matching.executor&quot;: &quot;Run&quot;,
+    &quot;Python.reset_database.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test_database.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;dev__backend&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Hbali/PycharmProjects/Contract_generator/addons/admin_module/templates&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;org.jetbrains.plugins.github.ui.GithubSettingsConfigurable&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\Hbali\PycharmProjects\Contract_generator\addons\admin_module\templates" />
@@ -289,7 +342,15 @@
       <option name="project" value="LOCAL" />
       <updated>1729970921528</updated>
     </task>
-    <option name="localTasksCounter" value="21" />
+    <task id="LOCAL-00021" summary="jólettamatch">
+      <option name="closed" value="true" />
+      <created>1729972294684</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1729972294684</updated>
+    </task>
+    <option name="localTasksCounter" value="22" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -314,6 +375,7 @@
     <MESSAGE value="matching" />
     <MESSAGE value="nemtommennyireszar" />
     <MESSAGE value="nemtommennyireszarvedfbergrefbergb" />
-    <option name="LAST_COMMIT_MESSAGE" value="nemtommennyireszarvedfbergrefbergb" />
+    <MESSAGE value="jólettamatch" />
+    <option name="LAST_COMMIT_MESSAGE" value="jólettamatch" />
   </component>
 </project>
