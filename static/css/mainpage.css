@@ -159,9 +159,10 @@
 
 .main-page .card {
     width: 40vw;
-    height: 80vh;
+    max-height: 90vh;
+    overflow-y: auto;
     position: absolute;
-    top: 10vh;
+    top: 50%;
     background-color: #FFFFFFCC;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -171,7 +172,6 @@
     opacity: 0;
     padding: 2.5vw;
     flex-direction: column;
-    justify-content: space-between;
     transition: all 0.5s ease-in-out;
 }
 
@@ -193,24 +193,24 @@
 
 .main-page .left .card {
     left: 50vw;
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%);
 }
 
 .main-page .right .card {
     right: 50vw;
-    transform: translateX(50%);
+    transform: translate(50%, -50%);
 }
 
 .main-page h3 {
     text-align: center;
-    font-size: 2vw;
-    margin-bottom: 2vw;
+    font-size: 1.75vw;
+    margin-bottom: 1.25vw;
 }
 
 .main-page h5 {
     font-size: 1vw;
     font-weight: 500;
-    margin-bottom: 1vw;
+    margin: 0 0 0.75vw;
 }
 
 .main-page h5 a {
@@ -236,6 +236,7 @@ input[type="file"] {
     pointer-events: none;
     font-weight: 500;
     transition: border-color 0.3s;
+    padding: 5vw;
 }
 
 .side.active .file-selector {
@@ -256,9 +257,10 @@ input[type="file"] {
     margin-bottom: 2.5vw;
 }
 
-textarea {
+input,
+textarea,
+select {
     width: 100%;
-    flex-grow: 1;
     border: none !important;
     border-radius: 1vw;
     padding: 1vw;
@@ -267,6 +269,12 @@ textarea {
     resize: none;
     box-shadow: 0 0 1vw #364f5720;
     transition: box-shadow 0.3s;
+    background-color: white;
+    margin-bottom: 0.75vw;
+}
+
+textarea {
+    height: 20vh;
 }
 
 textarea:hover,
@@ -275,11 +283,28 @@ textarea:focus {
     outline: none;
 }
 
+select {
+    appearance: none;
+    background-image: url("../img/angle-down.svg");
+    background-repeat: no-repeat;
+    background-position: right 1vw center;
+    background-size: 1vw;
+}
+
 #job-description::placeholder {
     text-align: center;
     color: var(--gray);
     opacity: 0.8;
     font-style: italic;
+}
+
+.input-group {
+    position: relative;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 0.5vw;
 }
 
 .loader,
