@@ -35,4 +35,31 @@ document.addEventListener('DOMContentLoaded', function() {
         easing: 'easeOutCubic'
     });
 
+    gsap.from('#results-container .item', {
+        y: 80,
+        opacity: 0,
+        duration: 1.25,
+        ease: 'power3.out',
+        delay: 0.25,
+        stagger: 0.25
+    });
+
+    document.querySelectorAll('.rating').forEach((rating) => {
+        let dashoffset = 101 - rating.getAttribute('data-value');
+        gsap.to(rating.querySelector('span'), {
+            innerHTML: rating.querySelector('span').getAttribute('data-value'),
+            roundProps: { innerHTML: 1 },
+            duration: 1.5,
+            ease: 'none'
+        });
+        
+        gsap.to(rating.querySelector('circle'), {
+            strokeDashoffset: dashoffset,
+            duration: 1.5,
+            ease: 'power2.out',
+            delay: 0.1
+        });
+
+    });
+
 });

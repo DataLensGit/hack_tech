@@ -31,8 +31,11 @@
                     <img src="{{ item.image }}" alt="{{ item.name }}">
                     <h3>{{ item.name }}</h3>
                     <p>{{ item.description }}</p>
-                    <div class="rating" data-="{{ item.rating }}">
-                        {{ item.rating }}
+                    <div class="rating" data-value="{{ item.rating }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" fill="none">
+                            <circle cx="18" cy="18" r="16"></circle>
+                        </svg>
+                        <span data-value="{{ item.rating }}">0</span>
                     </div>
                     {% if item.id == best_item_id %}
                         <p><strong>{{ best_item_explanation }}</strong></p>

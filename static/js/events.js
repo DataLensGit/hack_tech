@@ -14,30 +14,35 @@ document.addEventListener('DOMContentLoaded', function () {
             mainLeft.classList.add('clicked');
             mainRight.classList.add('clicked');
 
-            gsap.to('.main-page h2', {
-                y: 80,
-                opacity: 0,
-                duration: 1.25,
-                ease: 'power3.out'
-            });
+            mainLeft.style.zIndex = mainLeft.style.zIndex + 2;
 
-            gsap.to(mainLeft, {
-                width: "100vw",
-                duration: 0.75,
-                ease: 'power2.out',
-            });
+            setTimeout(() => {
 
-            gsap.to(mainRight, {
-                width: "20vw",
-                duration: 0.75,
-                ease: 'power2.out',
-            });
+                gsap.to('.main-page h2', {
+                    y: 80,
+                    opacity: 0,
+                    duration: 1.25,
+                    ease: 'power3.out'
+                });
 
-            gsap.to("#triangle", {
-                y: 80,
-                opacity: 0,
-                duration: 1,
-                ease: 'power3.out'
+                gsap.to(mainLeft, {
+                    width: "100vw",
+                    duration: 0.75,
+                    ease: 'power2.out',
+                });
+
+                gsap.to(mainRight, {
+                    width: "20vw",
+                    duration: 0.75,
+                    ease: 'power2.out',
+                });
+
+                gsap.to("#triangle", {
+                    y: 80,
+                    opacity: 0,
+                    duration: 1,
+                    ease: 'power3.out'
+                });
             });
         });
 
@@ -46,32 +51,37 @@ document.addEventListener('DOMContentLoaded', function () {
             mainLeft.classList.remove('active');
             mainLeft.classList.add('clicked');
             mainRight.classList.add('clicked');
+
+            mainRight.style.zIndex = mainLeft.style.zIndex + 1;
+
+            setTimeout(() => {
     
-            gsap.to(mainRight.querySelector('h2'), {
-                y: 80,
-                opacity: 0,
-                duration: 1.25,
-                ease: 'power3.out'
-            });
+                gsap.to('.main-page h2', {
+                    y: 80,
+                    opacity: 0,
+                    duration: 1.25,
+                    ease: 'power3.out'
+                });
 
-            gsap.to(mainRight, {
-                width: "100vw",
-                duration: 0.75,
-                ease: 'power2.out',
-            });
+                gsap.to(mainRight, {
+                    width: "100vw",
+                    duration: 0.75,
+                    ease: 'power2.out',
+                });
 
-            gsap.to(mainLeft, {
-                width: "20vw",
-                duration: 0.75,
-                ease: 'power2.out',
-            });
+                gsap.to(mainLeft, {
+                    width: "20vw",
+                    duration: 0.75,
+                    ease: 'power2.out',
+                });
 
-            gsap.to("#triangle", {
-                y: 80,
-                opacity: 0,
-                duration: 1,
-                ease: 'power3.out'
-            });
+                gsap.to("#triangle", {
+                    y: 80,
+                    opacity: 0,
+                    duration: 1,
+                    ease: 'power3.out'
+                });
+            }, 30);
         });
 
         // File selector
