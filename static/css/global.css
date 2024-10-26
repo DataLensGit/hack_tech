@@ -18,3 +18,21 @@ body {
     padding: 0;
     box-sizing: border-box;
 }
+
+/* Főoldal */
+
+#triangle {
+    width: 350px;
+    height: 350px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#triangle path {
+    stroke: #008bad;
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}

@@ -25,6 +25,7 @@ app = FastAPI()
 
 # Statikus fájlok kezelése
 app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static/js", StaticFiles(directory="static/js"), name="js")
 
 app.include_router(sample_module_router, prefix="/sample_module")
 
