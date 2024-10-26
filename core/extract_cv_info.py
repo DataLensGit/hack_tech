@@ -2,7 +2,22 @@ import os
 import openai
 import json
 import PyPDF2
+from datetime import datetime
+from sqlalchemy.orm import Session
 from dotenv import load_dotenv
+
+# Import your database session and models
+from core.database import SessionLocal
+from candidates_models import (
+    create_candidate,
+    add_education,
+    add_experience,
+    add_skill,
+    add_language,
+    add_certificate,
+    add_project,
+    add_attachment
+)
 
 # Load environment variables
 load_dotenv()
@@ -10,13 +25,22 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
 # Function to extract information from CV using ChatGPT
-def extract_cv_info(cv_text):
+def extract_cv_info(cv_text, file_name):
     prompt = f"""
+    The file name of the CV is: {file_name}.
     Extract the following data from the candidate's CV. Provide the information in JSON format with the keys:
-    "IndustryExperience", "TechnicalSkills", "RelevantCertifications", "JobTitles", "Responsibilities", "ToolsTechnologies".
+    "IndustryExperience", "TechnicalSkills", "RelevantCertifications", "JobTitles", "Responsibilities", "ToolsTechnologies", "FirstName", "LastName", "Email", "Languages", "Education".
+
+    Each section should be structured as follows:
+
+    - Languages: A list of dictionaries with "Language" and "Proficiency" (e.g., Fluent, Intermediate).
+    - Education: A list of dictionaries with "Degree", "FieldOfStudy", "Institution", "StartYear", and "EndYear".
 
     Example format:
     {{
+        "FirstName": "John",
+        "LastName": "Doe",
+        "Email": "johndoe@example.com",
         "IndustryExperience": ["Banking", "Healthcare"],
         "TechnicalSkills": [
             {{"SkillName": "Python", "Level": "Expert"}},
@@ -25,7 +49,15 @@ def extract_cv_info(cv_text):
         "RelevantCertifications": ["AWS Certified Solutions Architect", "Certified Scrum Master"],
         "JobTitles": ["Software Engineer", "Backend Developer"],
         "Responsibilities": ["Led a team of 5 developers", "Implemented CI/CD pipelines"],
-        "ToolsTechnologies": ["Docker", "Kubernetes", "AWS", "React"]
+        "ToolsTechnologies": ["Docker", "Kubernetes", "AWS", "React"],
+        "Languages": [
+            {{"Language": "English", "Proficiency": "Fluent"}},
+            {{"Language": "French", "Proficiency": "Intermediate"}}
+        ],
+        "Education": [
+            {{"Degree": "Bachelor of Science", "FieldOfStudy": "Computer Science", "Institution": "XYZ University", "StartYear": 2015, "EndYear": 2019}},
+            {{"Degree": "Master of Science", "FieldOfStudy": "Data Science", "Institution": "ABC University", "StartYear": 2020, "EndYear": 2022}}
+        ]
     }}
 
     CV Content:
@@ -74,9 +106,128 @@ def extract_text_from_pdf(pdf_path):
         print(f"Hiba történt a PDF szöveg kinyerése közben: {e}")
         return None
 
+def safe_year_conversion(year_str):
+    try:
+        return int(year_str)
+    except (ValueError, TypeError):
+        return None
+# Function to save extracted data to the database
+def save_extracted_data_to_db(extracted_info, file_name, db_session):
+    if not extracted_info:
+        return
+
+    # Print the extracted info for debugging
+    print(f"\n=== Kinyert adatok ({file_name}) ===\n")
+    print(json.dumps(extracted_info, indent=2, ensure_ascii=False))
+
+    # Get candidate's personal information
+    first_name = extracted_info.get("FirstName", "N/A")
+    last_name = extracted_info.get("LastName", "N/A")
+    email = extracted_info.get("Email", "N/A")
+
+    # Create a new candidate in the database
+    candidate = create_candidate(
+        db=db_session,
+        first_name=first_name,
+        last_name=last_name,
+        email=email,
+    )
+
+    # Save Industry Experience as Projects (example)
+    if "IndustryExperience" in extracted_info:
+        for industry in extracted_info["IndustryExperience"]:
+            add_project(
+                db=db_session,
+                candidate_id=candidate.id,
+                project_name=industry,
+                description=f"Experience in {industry}",
+                start_date=None,
+                end_date=None
+            )
+
+    # Save Technical Skills
+    if "TechnicalSkills" in extracted_info:
+        for skill in extracted_info["TechnicalSkills"]:
+            skill_name = skill.get("SkillName")
+            skill_level = skill.get("Level")
+            add_skill(
+                db=db_session,
+                candidate_id=candidate.id,
+                skill_name=skill_name,
+                skill_level=skill_level
+            )
+
+    # Save Certifications
+    if "RelevantCertifications" in extracted_info:
+        for cert in extracted_info["RelevantCertifications"]:
+            add_certificate(
+                db=db_session,
+                candidate_id=candidate.id,
+                certificate_name=cert
+            )
+
+    # Save Job Titles as Experiences
+    if "JobTitles" in extracted_info and "Responsibilities" in extracted_info:
+        for job_title, responsibility in zip(extracted_info["JobTitles"], extracted_info["Responsibilities"]):
+            add_experience(
+                db=db_session,
+                candidate_id=candidate.id,
+                job_title=job_title,
+                company=None,
+                description=responsibility
+            )
+
+    # Save Tools & Technologies as Skills
+    if "ToolsTechnologies" in extracted_info:
+        for tool in extracted_info["ToolsTechnologies"]:
+            add_skill(
+                db=db_session,
+                candidate_id=candidate.id,
+                skill_name=tool,
+                skill_level="Intermediate"  # Default level, adjust as needed
+            )
+
+    # Save Languages
+    if "Languages" in extracted_info:
+        for language in extracted_info["Languages"]:
+            add_language(
+                db=db_session,
+                candidate_id=candidate.id,
+                language=language.get("Language"),
+                proficiency=language.get("Proficiency")
+            )
+
+    # Save Education details
+    if "Education" in extracted_info:
+        for edu in extracted_info["Education"]:
+            start_year = safe_year_conversion(edu.get("StartYear"))
+            end_year = safe_year_conversion(edu.get("EndYear"))
+
+            add_education(
+                db=db_session,
+                candidate_id=candidate.id,
+                degree=edu.get("Degree"),
+                institution=edu.get("Institution"),
+                start_date=datetime(year=start_year, month=1, day=1) if start_year else None,
+                end_date=datetime(year=end_year, month=1, day=1) if end_year else None,
+                field_of_study=edu.get("FieldOfStudy")
+            )
+
+    # Save the CV file as an attachment
+    add_attachment(
+        db=db_session,
+        candidate_id=candidate.id,
+        file_name=file_name,
+        file_path=os.path.abspath(file_name),
+        upload_date=datetime.now()
+    )
+
 
 # Function to process CV files in a directory
 def process_cvs_in_directory(directory_path):
+    # Open database session
+    db_session = SessionLocal()
+
     for file_name in os.listdir(directory_path):
         if file_name.endswith(".pdf"):
             pdf_path = os.path.join(directory_path, file_name)
@@ -87,12 +238,14 @@ def process_cvs_in_directory(directory_path):
 
             # If text extraction was successful, proceed to ChatGPT API call
             if cv_text:
-                extracted_info = extract_cv_info(cv_text)
+                extracted_info = extract_cv_info(cv_text, file_name)
 
-                # Print the extracted information
+                # Save the extracted information to the database
                 if extracted_info:
-                    print("\n=== Kinyert adatok ===\n")
-                    print(json.dumps(extracted_info, indent=2, ensure_ascii=False))
+                    save_extracted_data_to_db(extracted_info, file_name, db_session)
+
+    # Close the database session
+    db_session.close()
 
 
 # Example usage

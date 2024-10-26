@@ -4,10 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d44df78d-462c-4bb5-9538-7dbdf75d44af" name="Changes" comment="convert to pdf">
+    <list default="true" id="d44df78d-462c-4bb5-9538-7dbdf75d44af" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/authentication.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/authentication.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/candidates_models.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/candidates_models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/extract_cv_info.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/extract_cv_info.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -239,7 +237,15 @@
       <option name="project" value="LOCAL" />
       <updated>1729929433677</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="chatgpt cv">
+      <option name="closed" value="true" />
+      <created>1729933645743</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1729933645743</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -260,6 +266,7 @@
     <MESSAGE value="init_commit" />
     <MESSAGE value="database_init" />
     <MESSAGE value="convert to pdf" />
-    <option name="LAST_COMMIT_MESSAGE" value="convert to pdf" />
+    <MESSAGE value="chatgpt cv" />
+    <option name="LAST_COMMIT_MESSAGE" value="chatgpt cv" />
   </component>
 </project>
