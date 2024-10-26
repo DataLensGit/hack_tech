@@ -3,30 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home - Modular System</title>
+    <title>Accesa - Job Matching System</title>
     <link rel="stylesheet" href="/static/css/global.css">
     {% for module in modules %}
     <link rel="stylesheet" href="{{ module['css_path'] }}">
     {% endfor %}
 </head>
 <body>
-    <div class="header">
+    <!-- <div class="header">
         <h1>Available Modules</h1>
         {% if request.cookies.access_token %}
         <p>Üdvözöljük, {{ request.cookies.access_token | decode_jwt }}</p>
         {% else %}
         <a class="login-button" href="/login">Login</a>
         {% endif %}
-    </div>
-    <div class="container">
-        {% for module in modules %}
+    </div> -->
+    <div class="main-page">
+        <!-- {% for module in modules %}
         <div class="module-card">
             <img src="{{ module['img_path'] }}" alt="{{ module['name'] }} logo">
             <h3>{{ module['name'] }}</h3>
             <p>{{ module['description'] }}</p>
             <a href="{{ module['url'] }}">Go to module</a>
         </div>
-        {% endfor %}
+        {% endfor %} -->
     </div>
 </body>
 </html>
