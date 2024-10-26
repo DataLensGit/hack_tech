@@ -5,7 +5,7 @@ import os
 
 
 # PostgreSQL adatbázis elérési út az .env fájlból
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:1234@localhost/test_database")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://testuser:ls47zGNb/3w07KvPC3sYEA==@server.datalensglobal.com/hacktech")
 
 # Adatbázis motor létrehozása
 try:
