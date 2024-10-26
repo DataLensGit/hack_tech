@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
     let mainLeft = document.querySelector('.main-page .left');
     let mainRight = document.querySelector('.main-page .right');
+    let fileSelector = document.querySelector('.file-selector');
+    let cv = document.querySelector('#cv');
 
     mainLeft.addEventListener('click', function() {
 
@@ -59,6 +61,22 @@ document.addEventListener('DOMContentLoaded', function() {
             duration: 1,
             ease: 'power3.out'
         });
-
     });
+
+    fileSelector.addEventListener('click', function() {
+        document.querySelector('#cv').click();
+    });
+
+    cv.addEventListener('change', function() {
+        let file = cv.files[0];
+        let reader = new FileReader();
+
+        reader.onload = function(e) {
+            document.querySelector('.file-selector p').innerHTML = file.name;
+        }
+
+        reader.readAsDataURL(file);
+    });
+
+
 });
