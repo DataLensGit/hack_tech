@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
         duration: 1.25,
         ease: 'power3.out',
         delay: 0.25,
-        stagger: 0.25
+        stagger: 0.18
     });
 
     document.querySelectorAll('.rating').forEach((rating) => {

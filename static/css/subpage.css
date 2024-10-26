@@ -1,5 +1,15 @@
 body {
-    background: url(../img/bg.png) no-repeat center center/cover;
+    background-color: var(--black);
+}
+
+body .bg {
+    background: url(../img/subbg.jpg) no-repeat center center/cover;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.3;
 }
 
 h1 {
@@ -9,13 +19,24 @@ h1 {
     margin: 10vh auto 5vh;
 }
 
+#results-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+}
+
 .item {
-    width: 100%;
-    margin-bottom: 1rem;
+    width: calc(50% - 0.5rem);
     background-color: white;
     border-radius: 1rem;
     padding: 2rem;
     position: relative;
+}
+
+.item:first-of-type {
+    width: 75%;
+    margin: 0 auto;
 }
 
 .item .rating {
@@ -46,6 +67,10 @@ h1 {
     transform: translate(-50%, -50%);
     font-size: 2rem;
     font-weight: 600;
+}
+
+.item h3 {
+
 }
 
 
