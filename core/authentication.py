@@ -19,6 +19,8 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
 
+    # Kapcsolat a tulajdonságokkal
+    properties = relationship("UserPropertyAssignment", back_populates="user")
 
 
 # Jelszó kezelése és JWT kezelés

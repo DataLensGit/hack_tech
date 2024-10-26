@@ -3,20 +3,20 @@ from sqlalchemy import Column, Integer, String, ForeignKey, Date, Text
 from sqlalchemy.orm import relationship
 from core.database import Base
 
-# Candidate model to store basic information about the candidate
+# Candidate modell
 class Candidate(Base):
     __tablename__ = "candidates"
 
     id = Column(Integer, primary_key=True, index=True)
     first_name = Column(String(255), nullable=False)
     last_name = Column(String(255), nullable=False)
-    email = Column(String, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
     phone_number = Column(String(50), nullable=True)
-    location = Column(Text, nullable=True)  # Address or general location
-    linkedin_url = Column(Text, nullable=True)  # LinkedIn profile URL
-    summary = Column(Text, nullable=True)  # Brief professional summary
+    location = Column(String(255), nullable=True)
+    linkedin_url = Column(String(255), nullable=True)
+    summary = Column(Text, nullable=True)
 
-    # Relationships to other CV details
+    # Kapcsolat az oktatással, tapasztalattal, készségekkel stb.
     educations = relationship("Education", back_populates="candidate", cascade="all, delete-orphan")
     experiences = relationship("Experience", back_populates="candidate", cascade="all, delete-orphan")
     skills = relationship("Skill", back_populates="candidate", cascade="all, delete-orphan")
@@ -26,104 +26,106 @@ class Candidate(Base):
     attachments = relationship("Attachment", back_populates="candidate", cascade="all, delete-orphan")
 
 
-# Education model to store education details
+# Education modell
 class Education(Base):
     __tablename__ = "educations"
 
     id = Column(Integer, primary_key=True, index=True)
     candidate_id = Column(Integer, ForeignKey('candidates.id'), nullable=False)
-    degree = Column(Text, nullable=False)  # Degree title (e.g., Bachelor of Science)
-    field_of_study = Column(Text, nullable=True)  # Subject (e.g., Computer Science)
-    institution = Column(Text, nullable=False)  # Name of the institution
-    start_date = Column(Date, nullable=True)  # Start date of the education
-    end_date = Column(Date, nullable=True)  # End date of the education
-    description = Column(Text, nullable=True)  # Additional details
+    degree = Column(String(255), nullable=False)
+    field_of_study = Column(String(255), nullable=True)
+    institution = Column(String(255), nullable=False)
+    start_date = Column(Date, nullable=True)
+    end_date = Column(Date, nullable=True)
+    description = Column(Text, nullable=True)
 
     candidate = relationship("Candidate", back_populates="educations")
 
 
-# Experience model to store work experience
+# Experience modell
 class Experience(Base):
     __tablename__ = "experiences"
 
     id = Column(Integer, primary_key=True, index=True)
     candidate_id = Column(Integer, ForeignKey('candidates.id'), nullable=False)
-    job_title = Column(Text, nullable=False)  # Job title (e.g., Senior Developer)
-    company = Column(Text, nullable=True)  # Company name
-    location = Column(Text, nullable=True)  # Job location
-    start_date = Column(Date, nullable=True)  # Start date of employment
-    end_date = Column(Date, nullable=True)  # End date of employment
-    description = Column(Text, nullable=True)  # Job responsibilities and achievements
+    job_title = Column(String(255), nullable=False)
+    company = Column(String(255), nullable=True)
+    location = Column(String(255), nullable=True)
+    start_date = Column(Date, nullable=True)
+    end_date = Column(Date, nullable=True)
+    description = Column(Text, nullable=True)
 
     candidate = relationship("Candidate", back_populates="experiences")
 
 
-# Skill model to store individual skills and their proficiency
+# Skill modell
 class Skill(Base):
     __tablename__ = "skills"
 
     id = Column(Integer, primary_key=True, index=True)
     candidate_id = Column(Integer, ForeignKey('candidates.id'), nullable=False)
-    skill_name = Column(Text, nullable=False)  # Name of the skill (e.g., Python)
-    skill_level = Column(String(50), nullable=True)  # Level of proficiency (e.g., Expert)
+    skill_name = Column(String(255), nullable=False)
+    skill_level = Column(String(50), nullable=True)
 
     candidate = relationship("Candidate", back_populates="skills")
 
 
-# Language model to store languages spoken by the candidate
+# Language modell
 class Language(Base):
     __tablename__ = "languages"
 
     id = Column(Integer, primary_key=True, index=True)
     candidate_id = Column(Integer, ForeignKey('candidates.id'), nullable=False)
-    language = Column(Text, nullable=False)  # Language (e.g., English)
-    proficiency = Column(String(50), nullable=True)  # Level of proficiency (e.g., Fluent)
+    language = Column(String(255), nullable=False)
+    proficiency = Column(String(50), nullable=True)
 
     candidate = relationship("Candidate", back_populates="languages")
 
 
-# Certificate model to store certifications acquired by the candidate
+# Certificate modell
 class Certificate(Base):
     __tablename__ = "certificates"
 
     id = Column(Integer, primary_key=True, index=True)
     candidate_id = Column(Integer, ForeignKey('candidates.id'), nullable=False)
-    certificate_name = Column(Text, nullable=False)  # Certification title (e.g., AWS Certified)
-    issuing_organization = Column(Text, nullable=True)  # Organization that issued the certificate
-    issue_date = Column(Date, nullable=True)  # Date of issue
-    expiration_date = Column(Date, nullable=True)  # Expiration date (if any)
-    certificate_url = Column(Text, nullable=True)  # URL to the certification (if applicable)
+    certificate_name = Column(String(255), nullable=False)
+    issuing_organization = Column(String(255), nullable=True)
+    issue_date = Column(Date, nullable=True)
+    expiration_date = Column(Date, nullable=True)
+    certificate_url = Column(String(255), nullable=True)
 
     candidate = relationship("Candidate", back_populates="certificates")
 
 
-# Project model to store project details handled by the candidate
+# Project modell
 class Project(Base):
     __tablename__ = "projects"
 
     id = Column(Integer, primary_key=True, index=True)
     candidate_id = Column(Integer, ForeignKey('candidates.id'), nullable=False)
-    project_name = Column(Text, nullable=False)  # Name of the project
-    description = Column(Text, nullable=True)  # Project details
-    start_date = Column(Date, nullable=True)  # Start date of the project
-    end_date = Column(Date, nullable=True)  # End date of the project
-    url = Column(Text, nullable=True)  # Link to the project (if any)
+    project_name = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    start_date = Column(Date, nullable=True)
+    end_date = Column(Date, nullable=True)
+    url = Column(String(255), nullable=True)
 
     candidate = relationship("Candidate", back_populates="projects")
 
 
-# Attachment model to store file attachments (like CV files)
+# Attachment modell
 class Attachment(Base):
     __tablename__ = "attachments"
 
     id = Column(Integer, primary_key=True, index=True)
     candidate_id = Column(Integer, ForeignKey('candidates.id'), nullable=False)
-    file_name = Column(Text, nullable=False)  # Name of the attached file
-    file_path = Column(Text, nullable=False)  # Path to the file location
-    upload_date = Column(Date, nullable=True)  # Date of file upload
+    file_name = Column(String(255), nullable=False)
+    file_path = Column(String(255), nullable=False)
+    upload_date = Column(Date, nullable=True)
 
     candidate = relationship("Candidate", back_populates="attachments")
 
+
+# Candidate model kezelés az adatbázisban
 def create_candidate(db: Session, first_name: str, last_name: str, email: str, phone_number: str = None, location: str = None, linkedin_url: str = None, summary: str = None) -> Candidate:
     candidate = Candidate(
         first_name=first_name,
@@ -139,87 +141,25 @@ def create_candidate(db: Session, first_name: str, last_name: str, email: str, p
     db.refresh(candidate)
     return candidate
 
+def get_candidate(db: Session, candidate_id: int) -> Candidate:
+    return db.query(Candidate).filter(Candidate.id == candidate_id).first()
 
-def add_education(db: Session, candidate_id: int, degree: str, institution: str, start_date=None, end_date=None, description=None, field_of_study=None):
-    education = Education(
-        candidate_id=candidate_id,
-        degree=degree,
-        field_of_study=field_of_study,
-        institution=institution,
-        start_date=start_date,
-        end_date=end_date,
-        description=description
-    )
-    db.add(education)
-    db.commit()
+def get_candidate_by_email(db: Session, email: str) -> Candidate:
+    return db.query(Candidate).filter(Candidate.email == email).first()
 
+def update_candidate(db: Session, candidate_id: int, update_data: dict) -> Candidate:
+    candidate = get_candidate(db, candidate_id)
+    if candidate:
+        for key, value in update_data.items():
+            setattr(candidate, key, value)
+        db.commit()
+        db.refresh(candidate)
+    return candidate
 
-def add_experience(db: Session, candidate_id: int, job_title: str, company: str, start_date=None, end_date=None, location=None, description=None):
-    experience = Experience(
-        candidate_id=candidate_id,
-        job_title=job_title,
-        company=company,
-        start_date=start_date,
-        end_date=end_date,
-        location=location,
-        description=description
-    )
-    db.add(experience)
-    db.commit()
-
-
-def add_skill(db: Session, candidate_id: int, skill_name: str, skill_level=None):
-    skill = Skill(
-        candidate_id=candidate_id,
-        skill_name=skill_name,
-        skill_level=skill_level
-    )
-    db.add(skill)
-    db.commit()
-
-
-def add_language(db: Session, candidate_id: int, language: str, proficiency=None):
-    language = Language(
-        candidate_id=candidate_id,
-        language=language,
-        proficiency=proficiency
-    )
-    db.add(language)
-    db.commit()
-
-
-def add_certificate(db: Session, candidate_id: int, certificate_name: str, issuing_organization=None, issue_date=None, expiration_date=None, certificate_url=None):
-    certificate = Certificate(
-        candidate_id=candidate_id,
-        certificate_name=certificate_name,
-        issuing_organization=issuing_organization,
-        issue_date=issue_date,
-        expiration_date=expiration_date,
-        certificate_url=certificate_url
-    )
-    db.add(certificate)
-    db.commit()
-
-
-def add_project(db: Session, candidate_id: int, project_name: str, description=None, start_date=None, end_date=None, url=None):
-    project = Project(
-        candidate_id=candidate_id,
-        project_name=project_name,
-        description=description,
-        start_date=start_date,
-        end_date=end_date,
-        url=url
-    )
-    db.add(project)
-    db.commit()
-
-
-def add_attachment(db: Session, candidate_id: int, file_name: str, file_path: str, upload_date=None):
-    attachment = Attachment(
-        candidate_id=candidate_id,
-        file_name=file_name,
-        file_path=file_path,
-        upload_date=upload_date
-    )
-    db.add(attachment)
-    db.commit()
+def delete_candidate(db: Session, candidate_id: int) -> bool:
+    candidate = get_candidate(db, candidate_id)
+    if candidate:
+        db.delete(candidate)
+        db.commit()
+        return True
+    return False

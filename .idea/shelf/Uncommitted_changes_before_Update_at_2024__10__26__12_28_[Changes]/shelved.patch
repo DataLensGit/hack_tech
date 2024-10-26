@@ -1,0 +1,539 @@
+Index: main.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from fastapi import FastAPI, Request, HTTPException, Form, Depends\r\nfrom core.endpoint_logic import load_all_avaliable_modules, load_module, templates\r\nfrom addons.sample_module.controllers import router as sample_module_router\r\nfrom core.database import engine, Base  # Importáld az engine-t és a Base-t\r\nfrom core.authentication import verify_password, get_user_by_username, create_access_token, decode_jwt\r\nfrom fastapi.staticfiles import StaticFiles\r\nfrom core.database import get_db\r\nfrom sqlalchemy.orm import Session\r\nfrom fastapi.responses import RedirectResponse\r\nimport logging\r\nimport core.candidates_models\r\n\r\n# Logger beállítása\r\nlogging.basicConfig(level=logging.INFO)\r\nlogger = logging.getLogger(__name__)\r\n\r\n# Adatbázis táblák létrehozása (ha még nem léteznek)\r\ntry:\r\n    Base.metadata.create_all(bind=engine)\r\n    logger.info(\"A táblák létrehozása sikeresen megtörtént.\")\r\nexcept Exception as e:\r\n    logger.error(f\"Hiba a táblák létrehozásakor: {e}\")\r\n\r\napp = FastAPI()\r\n\r\n# Statikus fájlok kezelése\r\napp.mount(\"/static\", StaticFiles(directory=\"static\"), name=\"static\")\r\n\r\napp.include_router(sample_module_router, prefix=\"/sample_module\")\r\n\r\n# Jinja2 szűrő hozzáadása a FastAPI alkalmazáshoz\r\ntemplates.env.filters['decode_jwt'] = decode_jwt\r\n\r\n# Kezdőoldal: modulok listázása\r\n@app.get(\"/\")\r\ndef home(request: Request):\r\n    return load_all_avaliable_modules(request)\r\n\r\n# Modul oldalak kezelése\r\n@app.get(\"/modules/{module_name}\")\r\ndef get_module(module_name: str, request: Request):\r\n    return load_module(module_name, request)\r\n\r\n@app.post(\"/login\")\r\ndef login(username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):\r\n    user = get_user_by_username(db, username)\r\n    if not user or not verify_password(password, user.hashed_password):\r\n        raise HTTPException(status_code=400, detail=\"Invalid credentials\")\r\n\r\n    # Token létrehozása\r\n    access_token = create_access_token(data={\"sub\": user.username})\r\n\r\n    # Sikeres bejelentkezés esetén visszaállítjuk a felhasználót a home oldalra, és beállítjuk a token-t a session-be\r\n    response = RedirectResponse(url=\"/\", status_code=303)  # Átirányítás 303 See Other státuszkóddal\r\n    response.set_cookie(key=\"access_token\", value=access_token)\r\n    return response\r\n\r\n@app.get(\"/login\")\r\nasync def login_get(request: Request):\r\n    return templates.TemplateResponse(\"login.html\", {\"request\": request})\r\n\r\nif __name__ == \"__main__\":\r\n    import uvicorn\r\n    import os\r\n\r\n    port = int(os.environ.get(\"PORT\", 8000))  # Heroku-n PORT változó lesz elérhető\r\n    uvicorn.run(\"main:app\", host=\"localhost\", port=port, reload=True)\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/main.py b/main.py
+--- a/main.py	(revision bfb543a0881b908611826d446590750b19114245)
++++ b/main.py	(date 1729932242712)
+@@ -1,4 +1,4 @@
+-from fastapi import FastAPI, Request, HTTPException, Form, Depends
++from fastapi import FastAPI, Request, HTTPException, Form, Depends, File, UploadFile
+ from core.endpoint_logic import load_all_avaliable_modules, load_module, templates
+ from addons.sample_module.controllers import router as sample_module_router
+ from core.database import engine, Base  # Importáld az engine-t és a Base-t
+@@ -9,6 +9,10 @@
+ from fastapi.responses import RedirectResponse
+ import logging
+ import core.candidates_models
++from core.inserting_data import parse_job_description
++from core.job_description_model import JobDescription  # Importáld a JobDescription modellt
++import pdfplumber  # PDF feldolgozás
++import os
+ 
+ # Logger beállítása
+ logging.basicConfig(level=logging.INFO)
+@@ -59,6 +63,44 @@
+ async def login_get(request: Request):
+     return templates.TemplateResponse("login.html", {"request": request})
+ 
++# PDF feldolgozás a dataset mappából
++@app.post("/process-dataset")
++async def process_dataset(db: Session = Depends(get_db)):
++    dataset_path = "dataset/job_descriptions"  # A PDF-eket tartalmazó mappa
++    if not os.path.exists(dataset_path):
++        raise HTTPException(status_code=404, detail="Dataset mappa nem található")
++
++    # PDF fájlok feldolgozása
++    for filename in os.listdir(dataset_path):
++        if filename.endswith(".pdf"):
++            file_path = os.path.join(dataset_path, filename)
++            try:
++                # PDF fájl olvasása
++                with pdfplumber.open(file_path) as pdf:
++                    text = "\n".join(page.extract_text() for page in pdf.pages)
++
++                # PDF szöveg elemzése
++                sections = parse_job_description(text)
++
++                # Adatok adatbázisba mentése
++                job_description = JobDescription(
++                    job_title=sections.get("job_title"),
++                    company_overview=sections.get("company_overview"),
++                    key_responsibilities=sections.get("key_responsibilities"),
++                    required_qualifications=sections.get("required_qualifications"),
++                    preferred_skills=sections.get("preferred_skills"),
++                    benefits=sections.get("benefits")
++                )
++                db.add(job_description)
++                db.commit()
++                logger.info(f"Sikeresen feldolgozva: {filename}")
++            except Exception as e:
++                logger.error(f"Hiba a '{filename}' feldolgozása során: {e}")
++                db.rollback()
++
++    return {"message": "Dataset feldolgozása befejeződött"}
++
++
+ if __name__ == "__main__":
+     import uvicorn
+     import os
+Index: core/authentication.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from sqlalchemy.orm import Session\r\nfrom passlib.context import CryptContext\r\nimport jwt\r\nfrom datetime import datetime, timedelta\r\nfrom core.database import Base\r\nfrom core.config import settings\r\nfrom sqlalchemy import Column, Integer, String, ForeignKey, Text\r\nfrom sqlalchemy.orm import relationship\r\n\r\n# Jelszó hash-elés\r\npwd_context = CryptContext(schemes=[\"argon2\"], deprecated=\"auto\")\r\n\r\n# Felhasználók táblája\r\nclass User(Base):\r\n    __tablename__ = \"users\"\r\n\r\n    id = Column(Integer, primary_key=True, index=True)\r\n    username = Column(String, unique=True, index=True)\r\n    email = Column(String, unique=True, index=True)\r\n    hashed_password = Column(String)\r\n\r\n    # Kapcsolat a tulajdonságokkal\r\n    properties = relationship(\"UserPropertyAssignment\", back_populates=\"user\")\r\n\r\n\r\n# Jelszó kezelése és JWT kezelés\r\ndef verify_password(plain_password: str, hashed_password: str) -> bool:\r\n    return pwd_context.verify(plain_password, hashed_password)\r\n\r\ndef get_password_hash(password: str) -> str:\r\n    return pwd_context.hash(password)\r\n\r\nSECRET_KEY = settings.SECRET_KEY\r\nALGORITHM = settings.ALGORITHM\r\nACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES\r\n\r\ndef create_access_token(data: dict, expires_delta: timedelta = None) -> str:\r\n    to_encode = data.copy()\r\n    expire = datetime.utcnow() + (expires_delta if expires_delta else timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))\r\n    to_encode.update({\"exp\": expire})\r\n    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)\r\n    return encoded_jwt\r\n\r\ndef verify_access_token(token: str) -> dict:\r\n    try:\r\n        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])\r\n        return payload\r\n    except jwt.ExpiredSignatureError:\r\n        return None\r\n    except jwt.InvalidTokenError:\r\n        return None\r\n\r\ndef decode_jwt(token: str) -> str:\r\n    payload = verify_access_token(token)\r\n    return payload.get('sub', \"Guest\") if payload else \"Guest\"\r\n\r\n# User model kezelés az adatbázisban\r\ndef create_user(db: Session, username: str, email: str, password: str) -> User:\r\n    hashed_password = get_password_hash(password)\r\n    user = User(username=username, email=email, hashed_password=hashed_password)\r\n    db.add(user)\r\n    db.commit()\r\n    db.refresh(user)\r\n    return user\r\n\r\ndef get_user(db: Session, user_id: int) -> User:\r\n    return db.query(User).filter(User.id == user_id).first()\r\n\r\ndef get_user_by_username(db: Session, username: str) -> User:\r\n    return db.query(User).filter(User.username == username).first()\r\n\r\ndef get_user_by_email(db: Session, email: str) -> User:\r\n    return db.query(User).filter(User.email == email).first()\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/core/authentication.py b/core/authentication.py
+--- a/core/authentication.py	(revision bfb543a0881b908611826d446590750b19114245)
++++ b/core/authentication.py	(date 1729934228354)
+@@ -19,9 +19,18 @@
+     email = Column(String, unique=True, index=True)
+     hashed_password = Column(String)
+ 
+-    # Kapcsolat a tulajdonságokkal
+-    properties = relationship("UserPropertyAssignment", back_populates="user")
++    # Kapcsolat a UserPropertyAssignment osztállyal
++    property_assignments = relationship("UserPropertyAssignment", back_populates="user", lazy='joined')
++
+ 
++class UserPropertyAssignment(Base):
++    __tablename__ = "user_property_assignments"
++
++    id = Column(Integer, primary_key=True, index=True)
++    user_id = Column(Integer, ForeignKey('users.id'))
++
++    # Kapcsolat az User osztállyal
++    user = relationship("User", back_populates="property_assignments", lazy='joined')
+ 
+ # Jelszó kezelése és JWT kezelés
+ def verify_password(plain_password: str, hashed_password: str) -> bool:
+Index: core/job_description_model.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/core/job_description_model.py b/core/job_description_model.py
+new file mode 100644
+--- /dev/null	(date 1729931746481)
++++ b/core/job_description_model.py	(date 1729931746481)
+@@ -0,0 +1,13 @@
++from sqlalchemy import Column, Integer, String, Text
++from core.database import Base
++
++class JobDescription(Base):
++    __tablename__ = "job_descriptions"
++
++    id = Column(Integer, primary_key=True, index=True)
++    job_title = Column(String, nullable=True)
++    company_overview = Column(Text, nullable=True)
++    key_responsibilities = Column(Text, nullable=True)
++    required_qualifications = Column(Text, nullable=True)
++    preferred_skills = Column(Text, nullable=True)
++    benefits = Column(Text, nullable=True)
+Index: core/candidates_models.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from sqlalchemy.orm import Session\r\nfrom sqlalchemy import Column, Integer, String, ForeignKey, Date, Text\r\nfrom sqlalchemy.orm import relationship\r\nfrom core.database import Base\r\n\r\n# Candidate modell\r\nclass Candidate(Base):\r\n    __tablename__ = \"candidates\"\r\n\r\n    id = Column(Integer, primary_key=True, index=True)\r\n    first_name = Column(String(255), nullable=False)\r\n    last_name = Column(String(255), nullable=False)\r\n    email = Column(String, unique=True, index=True, nullable=False)\r\n    phone_number = Column(String(50), nullable=True)\r\n    location = Column(String(255), nullable=True)\r\n    linkedin_url = Column(String(255), nullable=True)\r\n    summary = Column(Text, nullable=True)\r\n\r\n    # Kapcsolat az oktatással, tapasztalattal, készségekkel stb.\r\n    educations = relationship(\"Education\", back_populates=\"candidate\", cascade=\"all, delete-orphan\")\r\n    experiences = relationship(\"Experience\", back_populates=\"candidate\", cascade=\"all, delete-orphan\")\r\n    skills = relationship(\"Skill\", back_populates=\"candidate\", cascade=\"all, delete-orphan\")\r\n    languages = relationship(\"Language\", back_populates=\"candidate\", cascade=\"all, delete-orphan\")\r\n    certificates = relationship(\"Certificate\", back_populates=\"candidate\", cascade=\"all, delete-orphan\")\r\n    projects = relationship(\"Project\", back_populates=\"candidate\", cascade=\"all, delete-orphan\")\r\n    attachments = relationship(\"Attachment\", back_populates=\"candidate\", cascade=\"all, delete-orphan\")\r\n\r\n\r\n# Education modell\r\nclass Education(Base):\r\n    __tablename__ = \"educations\"\r\n\r\n    id = Column(Integer, primary_key=True, index=True)\r\n    candidate_id = Column(Integer, ForeignKey('candidates.id'), nullable=False)\r\n    degree = Column(String(255), nullable=False)\r\n    field_of_study = Column(String(255), nullable=True)\r\n    institution = Column(String(255), nullable=False)\r\n    start_date = Column(Date, nullable=True)\r\n    end_date = Column(Date, nullable=True)\r\n    description = Column(Text, nullable=True)\r\n\r\n    candidate = relationship(\"Candidate\", back_populates=\"educations\")\r\n\r\n\r\n# Experience modell\r\nclass Experience(Base):\r\n    __tablename__ = \"experiences\"\r\n\r\n    id = Column(Integer, primary_key=True, index=True)\r\n    candidate_id = Column(Integer, ForeignKey('candidates.id'), nullable=False)\r\n    job_title = Column(String(255), nullable=False)\r\n    company = Column(String(255), nullable=True)\r\n    location = Column(String(255), nullable=True)\r\n    start_date = Column(Date, nullable=True)\r\n    end_date = Column(Date, nullable=True)\r\n    description = Column(Text, nullable=True)\r\n\r\n    candidate = relationship(\"Candidate\", back_populates=\"experiences\")\r\n\r\n\r\n# Skill modell\r\nclass Skill(Base):\r\n    __tablename__ = \"skills\"\r\n\r\n    id = Column(Integer, primary_key=True, index=True)\r\n    candidate_id = Column(Integer, ForeignKey('candidates.id'), nullable=False)\r\n    skill_name = Column(String(255), nullable=False)\r\n    skill_level = Column(String(50), nullable=True)\r\n\r\n    candidate = relationship(\"Candidate\", back_populates=\"skills\")\r\n\r\n\r\n# Language modell\r\nclass Language(Base):\r\n    __tablename__ = \"languages\"\r\n\r\n    id = Column(Integer, primary_key=True, index=True)\r\n    candidate_id = Column(Integer, ForeignKey('candidates.id'), nullable=False)\r\n    language = Column(String(255), nullable=False)\r\n    proficiency = Column(String(50), nullable=True)\r\n\r\n    candidate = relationship(\"Candidate\", back_populates=\"languages\")\r\n\r\n\r\n# Certificate modell\r\nclass Certificate(Base):\r\n    __tablename__ = \"certificates\"\r\n\r\n    id = Column(Integer, primary_key=True, index=True)\r\n    candidate_id = Column(Integer, ForeignKey('candidates.id'), nullable=False)\r\n    certificate_name = Column(String(255), nullable=False)\r\n    issuing_organization = Column(String(255), nullable=True)\r\n    issue_date = Column(Date, nullable=True)\r\n    expiration_date = Column(Date, nullable=True)\r\n    certificate_url = Column(String(255), nullable=True)\r\n\r\n    candidate = relationship(\"Candidate\", back_populates=\"certificates\")\r\n\r\n\r\n# Project modell\r\nclass Project(Base):\r\n    __tablename__ = \"projects\"\r\n\r\n    id = Column(Integer, primary_key=True, index=True)\r\n    candidate_id = Column(Integer, ForeignKey('candidates.id'), nullable=False)\r\n    project_name = Column(String(255), nullable=False)\r\n    description = Column(Text, nullable=True)\r\n    start_date = Column(Date, nullable=True)\r\n    end_date = Column(Date, nullable=True)\r\n    url = Column(String(255), nullable=True)\r\n\r\n    candidate = relationship(\"Candidate\", back_populates=\"projects\")\r\n\r\n\r\n# Attachment modell\r\nclass Attachment(Base):\r\n    __tablename__ = \"attachments\"\r\n\r\n    id = Column(Integer, primary_key=True, index=True)\r\n    candidate_id = Column(Integer, ForeignKey('candidates.id'), nullable=False)\r\n    file_name = Column(String(255), nullable=False)\r\n    file_path = Column(String(255), nullable=False)\r\n    upload_date = Column(Date, nullable=True)\r\n\r\n    candidate = relationship(\"Candidate\", back_populates=\"attachments\")\r\n\r\n\r\n# Candidate model kezelés az adatbázisban\r\ndef create_candidate(db: Session, first_name: str, last_name: str, email: str, phone_number: str = None, location: str = None, linkedin_url: str = None, summary: str = None) -> Candidate:\r\n    candidate = Candidate(\r\n        first_name=first_name,\r\n        last_name=last_name,\r\n        email=email,\r\n        phone_number=phone_number,\r\n        location=location,\r\n        linkedin_url=linkedin_url,\r\n        summary=summary\r\n    )\r\n    db.add(candidate)\r\n    db.commit()\r\n    db.refresh(candidate)\r\n    return candidate\r\n\r\ndef get_candidate(db: Session, candidate_id: int) -> Candidate:\r\n    return db.query(Candidate).filter(Candidate.id == candidate_id).first()\r\n\r\ndef get_candidate_by_email(db: Session, email: str) -> Candidate:\r\n    return db.query(Candidate).filter(Candidate.email == email).first()\r\n\r\ndef update_candidate(db: Session, candidate_id: int, update_data: dict) -> Candidate:\r\n    candidate = get_candidate(db, candidate_id)\r\n    if candidate:\r\n        for key, value in update_data.items():\r\n            setattr(candidate, key, value)\r\n        db.commit()\r\n        db.refresh(candidate)\r\n    return candidate\r\n\r\ndef delete_candidate(db: Session, candidate_id: int) -> bool:\r\n    candidate = get_candidate(db, candidate_id)\r\n    if candidate:\r\n        db.delete(candidate)\r\n        db.commit()\r\n        return True\r\n    return False\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/core/candidates_models.py b/core/candidates_models.py
+--- a/core/candidates_models.py	(revision bfb543a0881b908611826d446590750b19114245)
++++ b/core/candidates_models.py	(date 1729930580785)
+@@ -163,3 +163,5 @@
+         db.commit()
+         return True
+     return False
++
++
+Index: requirements.txt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>\r\nannotated-types==0.7.0\r\nanyio==4.4.0\r\nargon2-cffi==23.1.0\r\nargon2-cffi-bindings==21.2.0\r\nbcrypt==4.2.0\r\ncertifi==2024.8.30\r\ncffi==1.17.1\r\ncharset-normalizer==3.4.0\r\nclick==8.1.7\r\ncolorama==0.4.6\r\nconnectable==1.2.0\r\ncontourpy==1.2.1\r\ncrypto==1.4.1\r\ncycler==0.12.1\r\necdsa==0.19.0\r\net-xmlfile==1.1.0\r\nfastapi==0.112.0\r\nfonttools==4.53.1\r\ngreenlet==3.1.1\r\nh11==0.14.0\r\nhttptools==0.6.1\r\nidna==3.7\r\nJinja2==3.1.4\r\njoblib==1.4.2\r\njose==1.0.0\r\nkiwisolver==1.4.5\r\nMako==1.3.5\r\nMarkupSafe==2.1.5\r\nmatplotlib==3.9.1.post1\r\nNaked==0.1.32\r\nnumpy==2.0.1\r\nopenpyxl==3.1.5\r\npackaging==24.1\r\npandas==2.2.2\r\npasslib==1.7.4\r\npillow==10.4.0\r\npsycopg2==2.9.9\r\npyasn1==0.6.1\r\npycparser==2.22\r\npycryptodome==3.21.0\r\npydantic==2.8.2\r\npydantic_core==2.20.1\r\nPyJWT==2.9.0\r\npyModbusTCP==0.2.2\r\npyparsing==3.1.2\r\npython-dateutil==2.9.0.post0\r\npython-dotenv==1.0.1\r\npython-jose==3.3.0\r\npython-multipart==0.0.9\r\npython-snap7==2.0.0\r\npytz==2024.1\r\nPyYAML==6.0.2\r\nrequests==2.32.3\r\nrsa==4.9\r\nscikit-learn==1.5.1\r\nscipy==1.14.0\r\nsetuptools==73.0.1\r\nshellescape==3.8.1\r\nsix==1.16.0\r\nsniffio==1.3.1\r\nSQLAlchemy==2.0.35\r\nstarlette==0.37.2\r\nthreadpoolctl==3.5.0\r\ntqdm==4.66.5\r\ntyping_extensions==4.12.2\r\ntzdata==2024.1\r\nurllib3==2.2.3\r\nuvicorn==0.30.5\r\nwatchfiles==0.23.0\r\nwebsockets==12.0\r\nwheel==0.44.0\r\nwsproto==1.2.0\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-16LE
+===================================================================
+diff --git a/requirements.txt b/requirements.txt
+--- a/requirements.txt	(revision bfb543a0881b908611826d446590750b19114245)
++++ b/requirements.txt	(date 1729932195113)
+@@ -71,3 +71,5 @@
+ websockets==12.0
+ wheel==0.44.0
+ wsproto==1.2.0
++
++pdfplumber~=0.11.4
+\ No newline at end of file
+Index: .idea/Base project.iml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<module type=\"PYTHON_MODULE\" version=\"4\">\r\n  <component name=\"NewModuleRootManager\">\r\n    <content url=\"file://$MODULE_DIR$\">\r\n      <excludeFolder url=\"file://$MODULE_DIR$/.venv\" />\r\n    </content>\r\n    <orderEntry type=\"jdk\" jdkName=\"Python 3.12\" jdkType=\"Python SDK\" />\r\n    <orderEntry type=\"sourceFolder\" forTests=\"false\" />\r\n  </component>\r\n</module>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/Base project.iml b/.idea/Base project.iml
+--- a/.idea/Base project.iml	(revision bfb543a0881b908611826d446590750b19114245)
++++ b/.idea/Base project.iml	(date 1729929720480)
+@@ -3,6 +3,7 @@
+   <component name="NewModuleRootManager">
+     <content url="file://$MODULE_DIR$">
+       <excludeFolder url="file://$MODULE_DIR$/.venv" />
++      <excludeFolder url="file://$MODULE_DIR$/venv" />
+     </content>
+     <orderEntry type="jdk" jdkName="Python 3.12" jdkType="Python SDK" />
+     <orderEntry type="sourceFolder" forTests="false" />
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"AutoImportSettings\">\r\n    <option name=\"autoReloadType\" value=\"SELECTIVE\" />\r\n  </component>\r\n  <component name=\"ChangeListManager\">\r\n    <list default=\"true\" id=\"d44df78d-462c-4bb5-9538-7dbdf75d44af\" name=\"Changes\" comment=\"\">\r\n      <change beforePath=\"$PROJECT_DIR$/.idea/workspace.xml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/.idea/workspace.xml\" afterDir=\"false\" />\r\n    </list>\r\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\r\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\r\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\r\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\r\n  </component>\r\n  <component name=\"FileTemplateManagerImpl\">\r\n    <option name=\"RECENT_TEMPLATES\">\r\n      <list>\r\n        <option value=\"HTML File\" />\r\n        <option value=\"Python Script\" />\r\n      </list>\r\n    </option>\r\n  </component>\r\n  <component name=\"Git.Settings\">\r\n    <option name=\"RECENT_BRANCH_BY_REPOSITORY\">\r\n      <map>\r\n        <entry key=\"$PROJECT_DIR$\" value=\"master\" />\r\n      </map>\r\n    </option>\r\n    <option name=\"RECENT_GIT_ROOT_PATH\" value=\"$PROJECT_DIR$\" />\r\n  </component>\r\n  <component name=\"GithubDefaultAccount\">\r\n    <option name=\"defaultAccountId\" value=\"83f2c502-e397-4d96-8cb5-bc2feda81db2\" />\r\n  </component>\r\n  <component name=\"ProjectColorInfo\">{\r\n  &quot;associatedIndex&quot;: 7\r\n}</component>\r\n  <component name=\"ProjectId\" id=\"2nEpfHC9sh8aDb1CokqPfoQXcO4\" />\r\n  <component name=\"ProjectLevelVcsManager\" settingsEditedManually=\"true\" />\r\n  <component name=\"ProjectViewState\">\r\n    <option name=\"hideEmptyMiddlePackages\" value=\"true\" />\r\n    <option name=\"showLibraryContents\" value=\"true\" />\r\n  </component>\r\n  <component name=\"PropertiesComponent\"><![CDATA[{\r\n  \"keyToString\": {\r\n    \"DefaultHtmlFileTemplate\": \"HTML File\",\r\n    \"Python.add_parameter_to_user.executor\": \"Run\",\r\n    \"Python.add_testuser.executor\": \"Run\",\r\n    \"Python.candidates_models.executor\": \"Run\",\r\n    \"Python.controllers.executor\": \"Run\",\r\n    \"Python.convert_to_pdf.executor\": \"Run\",\r\n    \"Python.create_new_module.executor\": \"Run\",\r\n    \"Python.create_project_structure.executor\": \"Run\",\r\n    \"Python.database.executor\": \"Run\",\r\n    \"Python.endpoint_logic.executor\": \"Run\",\r\n    \"Python.extract_cv_info.executor\": \"Run\",\r\n    \"Python.main.executor\": \"Run\",\r\n    \"Python.reset_database.executor\": \"Run\",\r\n    \"Python.test_database.executor\": \"Run\",\r\n    \"RunOnceActivity.ShowReadmeOnStart\": \"true\",\r\n    \"git-widget-placeholder\": \"dev__backend\",\r\n    \"last_opened_file_path\": \"C:/Users/Hbali/PycharmProjects/Contract_generator/addons/admin_module/templates\",\r\n    \"settings.editor.selected.configurable\": \"org.jetbrains.plugins.github.ui.GithubSettingsConfigurable\"\r\n  }\r\n}]]></component>\r\n  <component name=\"RecentsManager\">\r\n    <key name=\"CopyFile.RECENT_KEYS\">\r\n      <recent name=\"C:\\Users\\Hbali\\PycharmProjects\\Contract_generator\\addons\\admin_module\\templates\" />\r\n      <recent name=\"C:\\Users\\Hbali\\PycharmProjects\\Contract_generator\\addons\" />\r\n    </key>\r\n    <key name=\"MoveFile.RECENT_KEYS\">\r\n      <recent name=\"C:\\Users\\Hbali\\PycharmProjects\\base_project\\cv-s\" />\r\n      <recent name=\"C:\\Users\\Hbali\\PycharmProjects\\Contract_generator\" />\r\n      <recent name=\"C:\\Users\\Hbali\\PycharmProjects\\Base project\\static\\img\" />\r\n      <recent name=\"C:\\Users\\Hbali\\PycharmProjects\\Base project\\core\" />\r\n      <recent name=\"C:\\Users\\Hbali\\PycharmProjects\\Base project\" />\r\n    </key>\r\n  </component>\r\n  <component name=\"RunManager\">\r\n    <configuration name=\"main\" type=\"PythonConfigurationType\" factoryName=\"Python\" nameIsGenerated=\"true\">\r\n      <module name=\"Base project\" />\r\n      <option name=\"ENV_FILES\" value=\"\" />\r\n      <option name=\"INTERPRETER_OPTIONS\" value=\"\" />\r\n      <option name=\"PARENT_ENVS\" value=\"true\" />\r\n      <envs>\r\n        <env name=\"PYTHONUNBUFFERED\" value=\"1\" />\r\n      </envs>\r\n      <option name=\"SDK_HOME\" value=\"\" />\r\n      <option name=\"SDK_NAME\" value=\"Python 3.12\" />\r\n      <option name=\"WORKING_DIRECTORY\" value=\"\" />\r\n      <option name=\"IS_MODULE_SDK\" value=\"false\" />\r\n      <option name=\"ADD_CONTENT_ROOTS\" value=\"true\" />\r\n      <option name=\"ADD_SOURCE_ROOTS\" value=\"true\" />\r\n      <option name=\"SCRIPT_NAME\" value=\"$PROJECT_DIR$/main.py\" />\r\n      <option name=\"PARAMETERS\" value=\"\" />\r\n      <option name=\"SHOW_COMMAND_LINE\" value=\"false\" />\r\n      <option name=\"EMULATE_TERMINAL\" value=\"false\" />\r\n      <option name=\"MODULE_MODE\" value=\"false\" />\r\n      <option name=\"REDIRECT_INPUT\" value=\"false\" />\r\n      <option name=\"INPUT_FILE\" value=\"\" />\r\n      <method v=\"2\" />\r\n    </configuration>\r\n  </component>\r\n  <component name=\"SharedIndexes\">\r\n    <attachedChunks>\r\n      <set>\r\n        <option value=\"bundled-python-sdk-975db3bf15a3-31b6be0877a2-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-241.18034.82\" />\r\n      </set>\r\n    </attachedChunks>\r\n  </component>\r\n  <component name=\"SpellCheckerSettings\" RuntimeDictionaries=\"0\" Folders=\"0\" CustomDictionaries=\"0\" DefaultDictionary=\"application-level\" UseSingleDictionary=\"true\" transferred=\"true\" />\r\n  <component name=\"TaskManager\">\r\n    <task active=\"true\" id=\"Default\" summary=\"Default task\">\r\n      <changelist id=\"d44df78d-462c-4bb5-9538-7dbdf75d44af\" name=\"Changes\" comment=\"\" />\r\n      <created>1728548190412</created>\r\n      <option name=\"number\" value=\"Default\" />\r\n      <option name=\"presentableId\" value=\"Default\" />\r\n      <updated>1728548190412</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00001\" summary=\"This is the base project for future use\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1728683057921</created>\r\n      <option name=\"number\" value=\"00001\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00001\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1728683057921</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00002\" summary=\"This is the base project for future use\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1728683142617</created>\r\n      <option name=\"number\" value=\"00002\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00002\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1728683142617</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00003\" summary=\"This is the base project for future use\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1728683981870</created>\r\n      <option name=\"number\" value=\"00003\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00003\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1728683981870</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00004\" summary=\"This is the base project for future use\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1728684299210</created>\r\n      <option name=\"number\" value=\"00004\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00004\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1728684299210</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00005\" summary=\"first ever commit\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1728814661739</created>\r\n      <option name=\"number\" value=\"00005\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00005\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1728814661739</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00006\" summary=\"heroku test\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1728853744995</created>\r\n      <option name=\"number\" value=\"00006\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00006\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1728853744995</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00007\" summary=\"heroku test\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1728854011819</created>\r\n      <option name=\"number\" value=\"00007\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00007\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1728854011819</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00008\" summary=\"init_commit\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1729852952580</created>\r\n      <option name=\"number\" value=\"00008\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00008\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1729852952580</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00009\" summary=\"init_commit\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1729853073119</created>\r\n      <option name=\"number\" value=\"00009\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00009\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1729853073119</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00010\" summary=\"init_commit\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1729853309709</created>\r\n      <option name=\"number\" value=\"00010\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00010\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1729853309709</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00011\" summary=\"init_commit\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1729925545140</created>\r\n      <option name=\"number\" value=\"00011\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00011\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1729925545140</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00012\" summary=\"init_commit\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1729926438690</created>\r\n      <option name=\"number\" value=\"00012\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00012\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1729926438690</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00013\" summary=\"database_init\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1729928823566</created>\r\n      <option name=\"number\" value=\"00013\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00013\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1729928823566</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00014\" summary=\"database_init\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1729929135404</created>\r\n      <option name=\"number\" value=\"00014\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00014\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1729929135404</updated>\r\n    </task>\r\n    <option name=\"localTasksCounter\" value=\"15\" />\r\n    <servers />\r\n  </component>\r\n  <component name=\"Vcs.Log.Tabs.Properties\">\r\n    <option name=\"TAB_STATES\">\r\n      <map>\r\n        <entry key=\"MAIN\">\r\n          <value>\r\n            <State />\r\n          </value>\r\n        </entry>\r\n      </map>\r\n    </option>\r\n  </component>\r\n  <component name=\"VcsManagerConfiguration\">\r\n    <MESSAGE value=\"This is the base project for future use\" />\r\n    <MESSAGE value=\"first ever commit\" />\r\n    <MESSAGE value=\"heroku test\" />\r\n    <MESSAGE value=\"init_commit\" />\r\n    <MESSAGE value=\"database_init\" />\r\n    <option name=\"LAST_COMMIT_MESSAGE\" value=\"database_init\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+--- a/.idea/workspace.xml	(revision bfb543a0881b908611826d446590750b19114245)
++++ b/.idea/workspace.xml	(date 1729934426796)
+@@ -5,7 +5,114 @@
+   </component>
+   <component name="ChangeListManager">
+     <list default="true" id="d44df78d-462c-4bb5-9538-7dbdf75d44af" name="Changes" comment="">
++      <change afterPath="$PROJECT_DIR$/core/inserting_data.py" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/core/job_description_model.py" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_100_UIUX Designer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_10_Tech Lead.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_11_Product Owner.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_12_Tech Lead.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_13_Tech Lead.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_14_Backend Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_15_SAP Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_16_Full Stack Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_17_Backend Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_18_Full Stack Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_19_Backend Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_1_Tech Lead.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_20_UIUX Designer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_21_M365 Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_22_Tech Lead.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_23_Machine Learning Engineer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_24_M365 Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_25_Machine Learning Engineer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_26_Project Manager.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_27_Product Owner.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_28_Backend Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_29_Full Stack Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_2_Project Manager.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_30_Frontend Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_31_UIUX Designer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_32_Full Stack Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_33_UIUX Designer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_34_M365 Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_35_Backend Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_36_Backend Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_37_Full Stack Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_38_Backend Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_39_Product Owner.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_3_Project Manager.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_40_Full Stack Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_41_Project Manager.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_42_Tech Lead.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_43_Tech Lead.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_44_Machine Learning Engineer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_45_Tech Lead.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_46_Project Manager.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_47_Full Stack Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_48_SAP Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_49_UIUX Designer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_4_Machine Learning Engineer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_50_M365 Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_51_Full Stack Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_52_Project Manager.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_53_Frontend Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_54_M365 Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_55_Product Owner.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_56_Backend Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_57_Project Manager.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_58_Machine Learning Engineer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_59_M365 Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_5_Tech Lead.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_60_UIUX Designer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_61_Machine Learning Engineer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_62_UIUX Designer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_63_Frontend Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_64_Product Owner.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_65_Machine Learning Engineer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_66_Product Owner.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_67_Full Stack Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_68_Frontend Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_69_Backend Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_6_Tech Lead.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_70_Project Manager.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_71_Project Manager.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_72_Frontend Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_73_Full Stack Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_74_UIUX Designer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_75_M365 Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_76_Full Stack Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_77_Frontend Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_78_UIUX Designer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_79_Backend Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_7_Backend Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_80_M365 Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_81_Machine Learning Engineer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_82_Machine Learning Engineer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_83_SAP Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_84_SAP Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_85_Frontend Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_86_Project Manager.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_87_Machine Learning Engineer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_88_Machine Learning Engineer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_89_Full Stack Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_8_Tech Lead.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_90_Backend Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_91_Machine Learning Engineer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_92_Tech Lead.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_93_SAP Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_94_UIUX Designer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_95_Project Manager.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_96_Full Stack Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_97_Frontend Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_98_Backend Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_99_Frontend Developer.pdf" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/dataset/job_descriptions/job_description_9_Backend Developer.pdf" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/.idea/Base project.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Base project.iml" afterDir="false" />
+       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/core/authentication.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/authentication.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/core/candidates_models.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/candidates_models.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+     </list>
+     <option name="SHOW_DIALOG" value="false" />
+     <option name="HIGHLIGHT_CONFLICTS" value="true" />
+@@ -28,9 +135,21 @@
+     </option>
+     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+   </component>
++  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
++  "lastFilter": {
++    "state": "OPEN",
++    "assignee": "AdrianH03"
++  }
++}]]></component>
+   <component name="GithubDefaultAccount">
+-    <option name="defaultAccountId" value="83f2c502-e397-4d96-8cb5-bc2feda81db2" />
++    <option name="defaultAccountId" value="25ff707a-6068-4f35-a7ac-004db69da5d3" />
+   </component>
++  <component name="GithubPullRequestsUISettings"><![CDATA[{
++  "selectedUrlAndAccountId": {
++    "url": "https://github.com/DataLensGit/hack_tech.git",
++    "accountId": "25ff707a-6068-4f35-a7ac-004db69da5d3"
++  }
++}]]></component>
+   <component name="ProjectColorInfo">{
+   &quot;associatedIndex&quot;: 7
+ }</component>
+@@ -40,28 +159,27 @@
+     <option name="hideEmptyMiddlePackages" value="true" />
+     <option name="showLibraryContents" value="true" />
+   </component>
+-  <component name="PropertiesComponent"><![CDATA[{
+-  "keyToString": {
+-    "DefaultHtmlFileTemplate": "HTML File",
+-    "Python.add_parameter_to_user.executor": "Run",
+-    "Python.add_testuser.executor": "Run",
+-    "Python.candidates_models.executor": "Run",
+-    "Python.controllers.executor": "Run",
+-    "Python.convert_to_pdf.executor": "Run",
+-    "Python.create_new_module.executor": "Run",
+-    "Python.create_project_structure.executor": "Run",
+-    "Python.database.executor": "Run",
+-    "Python.endpoint_logic.executor": "Run",
+-    "Python.extract_cv_info.executor": "Run",
+-    "Python.main.executor": "Run",
+-    "Python.reset_database.executor": "Run",
+-    "Python.test_database.executor": "Run",
+-    "RunOnceActivity.ShowReadmeOnStart": "true",
+-    "git-widget-placeholder": "dev__backend",
+-    "last_opened_file_path": "C:/Users/Hbali/PycharmProjects/Contract_generator/addons/admin_module/templates",
+-    "settings.editor.selected.configurable": "org.jetbrains.plugins.github.ui.GithubSettingsConfigurable"
++  <component name="PropertiesComponent">{
++  &quot;keyToString&quot;: {
++    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
++    &quot;Notification.DisplayName-DoNotAsk-Vcs Important Messages&quot;: &quot;VCS important messages&quot;,
++    &quot;Notification.DoNotAsk-Vcs Important Messages&quot;: &quot;true&quot;,
++    &quot;Python.add_parameter_to_user.executor&quot;: &quot;Run&quot;,
++    &quot;Python.add_testuser.executor&quot;: &quot;Run&quot;,
++    &quot;Python.controllers.executor&quot;: &quot;Run&quot;,
++    &quot;Python.create_new_module.executor&quot;: &quot;Run&quot;,
++    &quot;Python.create_project_structure.executor&quot;: &quot;Run&quot;,
++    &quot;Python.database.executor&quot;: &quot;Run&quot;,
++    &quot;Python.endpoint_logic.executor&quot;: &quot;Run&quot;,
++    &quot;Python.main.executor&quot;: &quot;Run&quot;,
++    &quot;Python.reset_database.executor&quot;: &quot;Run&quot;,
++    &quot;Python.test_database.executor&quot;: &quot;Run&quot;,
++    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
++    &quot;git-widget-placeholder&quot;: &quot;dev__backend&quot;,
++    &quot;last_opened_file_path&quot;: &quot;C:/Users/HAdrian/PycharmProjects/hack_tech/dataset/job_descriptions&quot;,
++    &quot;settings.editor.selected.configurable&quot;: &quot;org.jetbrains.plugins.github.ui.GithubSettingsConfigurable&quot;
+   }
+-}]]></component>
++}</component>
+   <component name="RecentsManager">
+     <key name="CopyFile.RECENT_KEYS">
+       <recent name="C:\Users\Hbali\PycharmProjects\Contract_generator\addons\admin_module\templates" />
+@@ -75,7 +193,7 @@
+       <recent name="C:\Users\Hbali\PycharmProjects\Base project" />
+     </key>
+   </component>
+-  <component name="RunManager">
++  <component name="RunManager" selected="Python.main">
+     <configuration name="main" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+       <module name="Base project" />
+       <option name="ENV_FILES" value="" />
+@@ -99,11 +217,38 @@
+       <option name="INPUT_FILE" value="" />
+       <method v="2" />
+     </configuration>
++    <configuration name="reset_database" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
++      <module name="Base project" />
++      <option name="ENV_FILES" value="" />
++      <option name="INTERPRETER_OPTIONS" value="" />
++      <option name="PARENT_ENVS" value="true" />
++      <envs>
++        <env name="PYTHONUNBUFFERED" value="1" />
++      </envs>
++      <option name="SDK_HOME" value="" />
++      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
++      <option name="IS_MODULE_SDK" value="true" />
++      <option name="ADD_CONTENT_ROOTS" value="true" />
++      <option name="ADD_SOURCE_ROOTS" value="true" />
++      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/reset_database.py" />
++      <option name="PARAMETERS" value="" />
++      <option name="SHOW_COMMAND_LINE" value="false" />
++      <option name="EMULATE_TERMINAL" value="false" />
++      <option name="MODULE_MODE" value="false" />
++      <option name="REDIRECT_INPUT" value="false" />
++      <option name="INPUT_FILE" value="" />
++      <method v="2" />
++    </configuration>
++    <recent_temporary>
++      <list>
++        <item itemvalue="Python.reset_database" />
++      </list>
++    </recent_temporary>
+   </component>
+   <component name="SharedIndexes">
+     <attachedChunks>
+       <set>
+-        <option value="bundled-python-sdk-975db3bf15a3-31b6be0877a2-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-241.18034.82" />
++        <option value="bundled-python-sdk-98f27166c754-ba05f1cad1b1-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-242.21829.153" />
+       </set>
+     </attachedChunks>
+   </component>
+@@ -220,15 +365,7 @@
+       <option name="project" value="LOCAL" />
+       <updated>1729928823566</updated>
+     </task>
+-    <task id="LOCAL-00014" summary="database_init">
+-      <option name="closed" value="true" />
+-      <created>1729929135404</created>
+-      <option name="number" value="00014" />
+-      <option name="presentableId" value="LOCAL-00014" />
+-      <option name="project" value="LOCAL" />
+-      <updated>1729929135404</updated>
+-    </task>
+-    <option name="localTasksCounter" value="15" />
++    <option name="localTasksCounter" value="14" />
+     <servers />
+   </component>
+   <component name="Vcs.Log.Tabs.Properties">
+Index: core/inserting_data.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/core/inserting_data.py b/core/inserting_data.py
+new file mode 100644
+--- /dev/null	(date 1729934055680)
++++ b/core/inserting_data.py	(date 1729934055680)
+@@ -0,0 +1,88 @@
++import json
++import pdfplumber
++from sqlalchemy.orm import Session
++from core.database import SessionLocal
++from core.job_description_model import JobDescription
++
++def extract_text_from_pdf(pdf_path):
++    with pdfplumber.open(pdf_path) as pdf:
++        # Összes oldal szövegének összegyűjtése
++        text = "\n".join(page.extract_text() for page in pdf.pages)
++    return text
++
++
++def parse_job_description(text):
++    # Egyszerű szövegfeldolgozás a PDF szövegének felosztására
++    # Eredményt JSON formátumban adja vissza, amely később jól használható az OpenAI API-hoz
++    sections = {
++        "job_title": None,
++        "company_overview": None,
++        "key_responsibilities": None,
++        "required_qualifications": None,
++        "preferred_skills": None,
++        "benefits": None
++    }
++
++    # A szöveg szétválasztása a különböző szekciókra
++    lines = text.split('\n')
++    current_section = None
++    for line in lines:
++        line = line.strip()
++        if "Job Title" in line:
++            current_section = "job_title"
++        elif "Company Overview" in line:
++            current_section = "company_overview"
++        elif "Key Responsibilities" in line:
++            current_section = "key_responsibilities"
++        elif "Required Qualifications" in line:
++            current_section = "required_qualifications"
++        elif "Preferred Skills" in line:
++            current_section = "preferred_skills"
++        elif "Benefits" in line:
++            current_section = "benefits"
++        elif current_section and line:
++            if sections[current_section]:
++                sections[current_section] += " " + line
++            else:
++                sections[current_section] = line
++    # Debug kimenet a visszatérési érték ellenőrzéséhez
++    print("Parsed Sections:")
++    for section, content in sections.items():
++        print(f"{section}: {content}")
++
++    return sections
++    # Eredmény JSON formátumra alakítása
++    #json_result = json.dumps(sections, indent=4)
++    #return json_result
++
++
++def save_to_database(sections):
++    db: Session = SessionLocal()
++    try:
++        # Debug kimenet az adatbázisba mentés előtt
++        print("Saving to database:", sections)
++
++        job_description = JobDescription(
++            job_title=sections.get("job_title"),
++            company_overview=sections.get("company_overview"),
++            key_responsibilities=sections.get("key_responsibilities"),
++            required_qualifications=sections.get("required_qualifications"),
++            preferred_skills=sections.get("preferred_skills"),
++            benefits=sections.get("benefits")
++        )
++        db.add(job_description)
++        db.commit()
++
++        # Debug kimenet a sikeres mentés után
++        print("Record saved successfully.")
++    except Exception as e:
++        db.rollback()
++        print(f"Error saving to database: {e}")
++    finally:
++        db.close()
++
++
++def process_pdf(pdf_path):
++    text = extract_text_from_pdf(pdf_path)
++    sections_json = parse_job_description(text)
++    save_to_database(sections_json)
+\ No newline at end of file

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, HTTPException, Form, Depends
+from fastapi import FastAPI, Request, HTTPException, Form, Depends, File, UploadFile
 from core.endpoint_logic import load_all_avaliable_modules, load_module, templates
 from addons.sample_module.controllers import router as sample_module_router
 from core.database import engine, Base  # Importáld az engine-t és a Base-t
@@ -9,6 +9,10 @@ from sqlalchemy.orm import Session
 from fastapi.responses import RedirectResponse
 import logging
 import core.candidates_models
+from core.inserting_data import parse_job_description
+from core.job_description_model import JobDescription  # Importáld a JobDescription modellt
+import pdfplumber  # PDF feldolgozás
+import os
 
 # Logger beállítása
 logging.basicConfig(level=logging.INFO)
@@ -58,6 +62,44 @@ def login(username: str = Form(...), password: str = Form(...), db: Session = De
 @app.get("/login")
 async def login_get(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
+
+# PDF feldolgozás a dataset mappából
+@app.post("/process-dataset")
+async def process_dataset(db: Session = Depends(get_db)):
+    dataset_path = "dataset/job_descriptions"  # A PDF-eket tartalmazó mappa
+    if not os.path.exists(dataset_path):
+        raise HTTPException(status_code=404, detail="Dataset mappa nem található")
+
+    # PDF fájlok feldolgozása
+    for filename in os.listdir(dataset_path):
+        if filename.endswith(".pdf"):
+            file_path = os.path.join(dataset_path, filename)
+            try:
+                # PDF fájl olvasása
+                with pdfplumber.open(file_path) as pdf:
+                    text = "\n".join(page.extract_text() for page in pdf.pages)
+
+                # PDF szöveg elemzése
+                sections = parse_job_description(text)
+
+                # Adatok adatbázisba mentése
+                job_description = JobDescription(
+                    job_title=sections.get("job_title"),
+                    company_overview=sections.get("company_overview"),
+                    key_responsibilities=sections.get("key_responsibilities"),
+                    required_qualifications=sections.get("required_qualifications"),
+                    preferred_skills=sections.get("preferred_skills"),
+                    benefits=sections.get("benefits")
+                )
+                db.add(job_description)
+                db.commit()
+                logger.info(f"Sikeresen feldolgozva: {filename}")
+            except Exception as e:
+                logger.error(f"Hiba a '{filename}' feldolgozása során: {e}")
+                db.rollback()
+
+    return {"message": "Dataset feldolgozása befejeződött"}
+
 
 if __name__ == "__main__":
     import uvicorn
