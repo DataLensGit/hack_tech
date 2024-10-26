@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function () {
         mainRight.classList.add('active');
         mainLeft.classList.remove('active');
 
-        gsap.to(mainRight.querySelector('h2'), {
+        gsap.to('.main-page h2', { 
             y: 80,
             opacity: 0,
             duration: 1.25,
@@ -129,6 +129,18 @@ document.addEventListener('DOMContentLoaded', function () {
     descriptionSubmit.addEventListener('click', function () {
         // Itt mehet a küldés a backendnek
         console.log(jobDescription.value);
+    });
+
+    // Job description voice input
+
+    let voiceButton = document.querySelector('#transcript');
+    
+    voiceButton.addEventListener('click', function () {
+        console.log('Voice input');
+        
+        document.querySelector('.icon').classList.add('active');
+
+        // Hang leírása
     });
 
 
