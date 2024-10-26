@@ -145,11 +145,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Job description send
         let jobDescription = document.querySelector('#job-description');
-        let descriptionSubmit = document.querySelector('#submit-job');
-
-        descriptionSubmit.addEventListener('click', function () {
-            console.log(jobDescription.value);
-        });
 
         // Transcript handling
         let transcriptButtons = document.querySelectorAll('.transcript-button');

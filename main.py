@@ -12,6 +12,7 @@ from fastapi.responses import RedirectResponse
 import logging
 from typing import Optional
 from typing import List
+from pydantic import BaseModel
 
 
 # Logger beállítása
@@ -108,6 +109,44 @@ async def results_page(request: Request, param1: Optional[str] = None, param2: O
         "best_item_id": data['best_item_id'],
         "best_item_explanation": data['best_item_explanation']
     })
+
+
+
+# Pydantic modell a beérkező adatokhoz (csak JSON esetén használjuk)
+class Keyword(BaseModel):
+    skill: str
+    weight: int
+
+class JobSubmission(BaseModel):
+    industry: str
+    jobDescription: Optional[str] = None
+    keywords: List[Keyword] = []
+
+# Végpont a form adatok és fájl fogadására
+@app.post("/submit-job")
+async def submit_job(
+    industry: str = Form(...),
+    jobDescription: Optional[str] = Form(None),
+    keywords: Optional[List[Keyword]] = None,
+    cv: Optional[UploadFile] = File(None)
+):
+    try:
+        # Ha van csatolt fájl, olvassuk be annak tartalmát
+        if cv:
+            cv_content = await cv.read()
+            # Itt tudod menteni vagy feldolgozni a csatolt dokumentumot
+
+        # Logikailag feldolgozhatod az adatokat
+        print("Industry:", industry)
+        print("Job Description:", jobDescription)
+        print("Keywords:", keywords)
+        if cv:
+            print("CV filename:", cv.filename)
+
+        # Visszaadunk egy válasz üzenetet
+        return {"status": "success", "industry": industry, "jobDescription": jobDescription, "keywords": keywords}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Nem sikerült feldolgozni a kérést: {str(e)}")
 
 
 if __name__ == "__main__":
