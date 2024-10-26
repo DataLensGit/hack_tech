@@ -6,7 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="d44df78d-462c-4bb5-9538-7dbdf75d44af" name="Changes" comment="Textarea for company has been changed, drag and drop added">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/events.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/events.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/static/js/fileUpload.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/fileUpload.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/results.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/results.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,25 +53,25 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
-    &quot;Python.add_parameter_to_user.executor&quot;: &quot;Run&quot;,
-    &quot;Python.add_testuser.executor&quot;: &quot;Run&quot;,
-    &quot;Python.controllers.executor&quot;: &quot;Run&quot;,
-    &quot;Python.create_new_module.executor&quot;: &quot;Run&quot;,
-    &quot;Python.create_project_structure.executor&quot;: &quot;Run&quot;,
-    &quot;Python.database.executor&quot;: &quot;Run&quot;,
-    &quot;Python.endpoint_logic.executor&quot;: &quot;Run&quot;,
-    &quot;Python.main.executor&quot;: &quot;Run&quot;,
-    &quot;Python.reset_database.executor&quot;: &quot;Run&quot;,
-    &quot;Python.test_database.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;frontend&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/Hbali/PycharmProjects/Contract_generator/addons/admin_module/templates&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "DefaultHtmlFileTemplate": "HTML File",
+    "Python.add_parameter_to_user.executor": "Run",
+    "Python.add_testuser.executor": "Run",
+    "Python.controllers.executor": "Run",
+    "Python.create_new_module.executor": "Run",
+    "Python.create_project_structure.executor": "Run",
+    "Python.database.executor": "Run",
+    "Python.endpoint_logic.executor": "Run",
+    "Python.main.executor": "Run",
+    "Python.reset_database.executor": "Run",
+    "Python.test_database.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "frontend",
+    "last_opened_file_path": "C:/Users/Hbali/PycharmProjects/Contract_generator/addons/admin_module/templates",
+    "settings.editor.selected.configurable": "promo.javascript"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\Hbali\PycharmProjects\Contract_generator\addons\admin_module\templates" />
@@ -258,7 +261,15 @@
       <option name="project" value="LOCAL" />
       <updated>1729955437399</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="Textarea for company has been changed, drag and drop added">
+      <option name="closed" value="true" />
+      <created>1729955729723</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1729955729723</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">

@@ -28,9 +28,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 if (response.ok) {
-                    window.location.href = '/results?param1=Candidate&param2=Vagyamitakarsz';
+                    window.location.href = '/results?param1=Candidate&param2=the Job';
                 } else {
-                    window.location.href = '/results?param1=Candidate&param2=Vagyamitakarsz';
+                    window.location.href = '/results?param1=Candidate&param2=the Job';
                 }
             } catch (error) {
                 console.error('Hiba a fájl feltöltése közben:', error);

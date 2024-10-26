@@ -102,6 +102,7 @@ async def results_page(request: Request, param1: Optional[str] = None, param2: O
     return templates.TemplateResponse("results.html", {
         "request": request,
         "name":param1,
+        "pos":param2,
         "items": data['items'],
         "best_item_id": data['best_item_id'],
         "best_item_explanation": data['best_item_explanation']
