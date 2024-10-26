@@ -93,6 +93,20 @@ async def upload_audio(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Nem sikerült feldolgozni a hangfájlt: {str(e)}")
 
+
+# Eredmények megjelenítése a results.html oldalon
+@app.get("/results")
+async def results_page(request: Request):
+    data = generate_data()
+    return templates.TemplateResponse("results.html", {
+        "request": request,
+        "items": data['items'],
+        "best_item_id": data['best_item_id'],
+        "best_item_explanation": data['best_item_explanation']
+    })
+
+
+
 if __name__ == "__main__":
     import uvicorn
     import os

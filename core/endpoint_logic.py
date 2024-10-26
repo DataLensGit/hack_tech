@@ -34,6 +34,7 @@ def generate_data():
 
 def handle_file_upload(file: UploadFile):
     # Ellenőrizzük, hogy a fájl PDF típusú-e
+    print("Belépett")
     if file.content_type != "application/pdf":
         raise HTTPException(status_code=400, detail="Csak PDF fájlokat lehet feltölteni")
 

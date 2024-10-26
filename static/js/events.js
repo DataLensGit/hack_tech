@@ -5,11 +5,10 @@ document.addEventListener('DOMContentLoaded', function () {
     let cv = document.querySelector('#cv');
 
     mainLeft.addEventListener('click', function () {
-
         mainLeft.classList.add('active');
         mainRight.classList.remove('active');
 
-        gsap.to('.main-page h2', { 
+        gsap.to('.main-page h2', {
             y: 80,
             opacity: 0,
             duration: 1.25,
@@ -34,21 +33,13 @@ document.addEventListener('DOMContentLoaded', function () {
             duration: 1,
             ease: 'power3.out'
         });
-
-        // gsap.to(mainLeft.querySelector('.card'), {
-        //     opacity: 1,
-        //     duration: 0.85,
-        //     ease: 'power2.out'
-        // });
-
     });
 
     mainRight.addEventListener('click', function () {
-
         mainRight.classList.add('active');
         mainLeft.classList.remove('active');
 
-        gsap.to('.main-page h2', { 
+        gsap.to(mainRight.querySelector('h2'), {
             y: 80,
             opacity: 0,
             duration: 1.25,
@@ -76,7 +67,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // File selector
-
     fileSelector.addEventListener('click', function () {
         document.querySelector('#cv').click();
     });
@@ -85,7 +75,6 @@ document.addEventListener('DOMContentLoaded', function () {
         let file = cv.files[0];
         uploadFile(file);
     });
-
 
     ["dragenter", "dragover", "dragleave", "drop"].forEach(eventName => {
         fileSelector.addEventListener(eventName, preventDefaults, false);
@@ -101,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     ["dragleave", "drop"].forEach(eventName => {
         fileSelector.addEventListener(eventName, () => fileSelector.classList.remove("highlight"), false);
-    }); 
+    });
 
     fileSelector.addEventListener("drop", handleDrop, false);
 
@@ -111,18 +100,29 @@ document.addEventListener('DOMContentLoaded', function () {
         uploadFile(file);
     }
 
-    function uploadFile(file) {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onloadend = () => {
-            // Itt mehet a küldés a backendnek
-            console.log(reader.result);
-            
-        };
+    async function uploadFile(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await fetch('http://localhost:8000/upload-pdf', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                // Ha a feltöltés sikeres, navigáljunk a results.html oldalra
+                window.location.href = '/results';
+            } else {
+                window.location.href = '/results';
+                console.error('Hiba a fájl feltöltésekor');
+            }
+        } catch (error) {
+            console.error('Hiba a szerverrel való kapcsolat során:', error);
+        }
     }
 
     // Job description send
-
     let jobDescription = document.querySelector('#job-description');
     let descriptionSubmit = document.querySelector('#submit-job');
 
@@ -130,18 +130,4 @@ document.addEventListener('DOMContentLoaded', function () {
         // Itt mehet a küldés a backendnek
         console.log(jobDescription.value);
     });
-
-    // Job description voice input
-
-    let voiceButton = document.querySelector('#transcript');
-    
-    voiceButton.addEventListener('click', function () {
-        console.log('Voice input');
-        
-        document.querySelector('.icon').classList.add('active');
-
-        // Hang leírása
-    });
-
-
 });
