@@ -319,6 +319,7 @@ select {
 
 .input-group .line input:last-of-type {
     width: 5vw;
+    margin-left: 0.5vw;
 }
 
 .input-group .line span {
@@ -326,11 +327,30 @@ select {
     font-size: 1.125vw;
 }
 
+.input-group .line .delete {
+    background-color: var(--red);
+    color: white;
+    min-width: 2.85vw;
+    height: 2.85vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75vw;
+    margin-left: 0.5vw;
+    cursor: pointer;
+    font-size: 2vw;
+    font-weight: 300;
+}
+
 .input-group .add-keyword {
     text-decoration: underline;
     font-weight: 500;
     cursor: pointer;
     font-size: 0.875vw;
+}
+
+.card .primary-link {
+    font-size: 1vw;
 }
 
 .loader,

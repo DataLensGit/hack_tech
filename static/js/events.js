@@ -175,6 +175,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (addKeyword) {
             let keywords = document.querySelector('.keywords');
+            let keywordItems = keywords.querySelectorAll('.line');
+
+            keywordItems.forEach(keyword => {
+                keyword.querySelector('.delete').addEventListener('click', function () {                    
+                    keyword.remove();
+                });
+            });
 
             addKeyword.addEventListener('click', function () {
                 let id = keywords.children.length + 1;
@@ -183,9 +190,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 keyword.innerHTML = `
                     <div class="line">
                         <input type="text" id="keyword-${id}" name="keyword-${id}" placeholder="Skill/attribute">
-                        <input type="text" id="weight-${id}" name="weight-${id}" placeholder="Weight" oninput="this.value = this.value.replace(/[^0-9]/g, '')"><span>%</span>
+                        <input type="text" id="weight-${id}" name="weight-${id}" placeholder="Weight" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        <span>%</span>
+                        <span class="delete">&times;</span>
                     </div>
                 `
+                keyword.querySelector('.delete').addEventListener('click', function () {                    
+                    keyword.remove();
+                });
                 keywords.appendChild(keyword);
             });
         }
