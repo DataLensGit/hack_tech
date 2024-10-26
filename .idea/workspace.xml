@@ -5,7 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d44df78d-462c-4bb5-9538-7dbdf75d44af" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/convert_to_pdf.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -46,11 +45,14 @@
     "DefaultHtmlFileTemplate": "HTML File",
     "Python.add_parameter_to_user.executor": "Run",
     "Python.add_testuser.executor": "Run",
+    "Python.candidates_models.executor": "Run",
     "Python.controllers.executor": "Run",
+    "Python.convert_to_pdf.executor": "Run",
     "Python.create_new_module.executor": "Run",
     "Python.create_project_structure.executor": "Run",
     "Python.database.executor": "Run",
     "Python.endpoint_logic.executor": "Run",
+    "Python.extract_cv_info.executor": "Run",
     "Python.main.executor": "Run",
     "Python.reset_database.executor": "Run",
     "Python.test_database.executor": "Run",
@@ -218,7 +220,15 @@
       <option name="project" value="LOCAL" />
       <updated>1729928823566</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="database_init">
+      <option name="closed" value="true" />
+      <created>1729929135404</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1729929135404</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
