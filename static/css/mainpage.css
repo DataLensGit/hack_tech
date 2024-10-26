@@ -1,9 +1,3 @@
-:root {
-    --blue: #3498db;
-    --red: #e74c3c;
-    --gray: #bdc3c7;
-}
-
 #triangle {
     width: 25%;
     height: 25%;
@@ -159,8 +153,6 @@
 
 .main-page .card {
     width: 40vw;
-    max-height: 90vh;
-    overflow-y: auto;
     position: absolute;
     top: 50%;
     background-color: #FFFFFFCC;
@@ -170,9 +162,16 @@
     box-shadow: 0 0 2vw rgba(0, 0, 0, 0.2);
     display: none;
     opacity: 0;
-    padding: 2.5vw;
     flex-direction: column;
     transition: all 0.5s ease-in-out;
+    overflow: hidden;
+}
+
+.main-page .scroll-container {
+    padding: 2.5vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
 }
 
 .main-page .side.active .card {

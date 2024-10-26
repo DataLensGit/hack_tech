@@ -72,25 +72,38 @@
                 <p>I'm <span>offering</span> a job</p>
             </div>
             <div class="card">
-                <h3>We will show you the applicants who best fit the job description!</h3>
-                <h5>
-                    Write the job description, drag and drop a document here, or
-                    <a class="transcript-button">use voice transcription</a>:
-                </h5>
-                <textarea id="job-description" name="job-description" rows="7"></textarea>
-                <div class="input-group">
-                    <label for="industry">Industry</label>
-                    <select id="industry" name="industry">
-                        <option value="" disabled selected>Choose industry</option>
-                        <option value="IT">IT</option>
-                        <option value="Finance">Finance</option>
-                        <option value="Marketing">Marketing</option>
-                        <option value="Healthcare">Healthcare</option>
-                        <option value="Education">Education</option>
-                        <option value="Other">Other</option>
-                    </select>
+                <div class="scroll-container">
+
+                    <h3>We will show you the applicants who best fit the job description!</h3>
+                    <div class="input-group">
+                        <label for="industry">Industry</label>
+                        <select id="industry" name="industry">
+                            <option value="" disabled selected>Choose industry</option>
+                            <option value="IT">IT</option>
+                            <option value="Finance">Finance</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Healthcare">Healthcare</option>
+                            <option value="Education">Education</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>
+                            Write the job description, drag and drop a document here, or
+                            <a class="transcript-button">use voice transcription</a>:
+                        </label>
+                        <textarea id="job-description" name="job-description" rows="7"></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label for="keywords">Keywords</label>
+                        <div class="line">
+                            <input type="text" id="keyword-1" name="keyword-1" placeholder="Skill/attribute">
+                            <input type="text" id="weight-1" name="weight-1" placeholder="Weight">%
+                        </div>
+                        <a href="" class="add-keyword">+ Add keyword</a>
+                    </div>
+                    <button id="submit-job" class="primary-link">Submit</button>
                 </div>
-                <button id="submit-job" class="primary-link">Submit</button>
             </div>
         </div>
     </section>
