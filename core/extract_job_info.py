@@ -7,11 +7,11 @@ from sqlalchemy.orm import Session
 from core.database import SessionLocal
 from datetime import datetime
 from job_description_model import JobDescription, Benefit, Responsibility, Qualification, PreferredSkill, IndustryField
+from concurrent.futures import ThreadPoolExecutor
 
 # Load environment variables
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
-
 
 # Function to extract text from a PDF file
 def extract_text_from_pdf(pdf_path):
@@ -28,9 +28,6 @@ def extract_text_from_pdf(pdf_path):
         print(f"Hiba történt a PDF szöveg kinyerése közben: {e}")
         return None
 
-
-# Function to extract information from a job description using ChatGPT
-# Function to extract information from a job description using ChatGPT
 # Function to extract information from a job description using ChatGPT
 def extract_job_info(job_text):
     prompt = f"""
@@ -102,14 +99,12 @@ def extract_job_info(job_text):
         print(f"Hiba történt a ChatGPT API hívása közben: {e}")
         return None
 
-
 # Function to save extracted job data to the database
 def save_job_description_to_db(extracted_info, db_session):
     if not extracted_info:
         return
 
     try:
-        # Job leírás alapadatok mentése
         job_description = JobDescription(
             job_title=extracted_info.get("JobTitle", "N/A"),
             company_overview=extracted_info.get("CompanyOverview", "N/A")
@@ -118,7 +113,6 @@ def save_job_description_to_db(extracted_info, db_session):
         db_session.commit()
         db_session.refresh(job_description)
 
-        # Iparági tapasztalatok mentése
         for industry in extracted_info.get("IndustryFields", []):
             new_industry = IndustryField(
                 industry_name=industry,
@@ -126,7 +120,6 @@ def save_job_description_to_db(extracted_info, db_session):
             )
             db_session.add(new_industry)
 
-        # Felelősségi körök mentése
         for responsibility in extracted_info.get("KeyResponsibilities", []):
             new_responsibility = Responsibility(
                 description=responsibility,
@@ -134,7 +127,6 @@ def save_job_description_to_db(extracted_info, db_session):
             )
             db_session.add(new_responsibility)
 
-        # Követelmények mentése
         for qualification in extracted_info.get("RequiredQualifications", []):
             new_qualification = Qualification(
                 description=qualification,
@@ -142,10 +134,8 @@ def save_job_description_to_db(extracted_info, db_session):
             )
             db_session.add(new_qualification)
 
-        # Preferált készségek mentése (atomizálva)
         for skill in extracted_info.get("PreferredSkills", []):
             if "," in skill:
-                # Tovább bontás a vesszővel elválasztott készségekre
                 individual_skills = [s.strip() for s in skill.split(",")]
                 for ind_skill in individual_skills:
                     new_skill = PreferredSkill(
@@ -160,10 +150,8 @@ def save_job_description_to_db(extracted_info, db_session):
                 )
                 db_session.add(new_skill)
 
-        # Juttatások mentése (atomizálva)
         for benefit in extracted_info.get("Benefits", []):
             if "," in benefit:
-                # Tovább bontás a vesszővel elválasztott juttatásokra
                 individual_benefits = [b.strip() for b in benefit.split(",")]
                 for ind_benefit in individual_benefits:
                     new_benefit = Benefit(
@@ -185,50 +173,42 @@ def save_job_description_to_db(extracted_info, db_session):
         print(f"Hiba történt az adatbázisba mentés közben: {db_err}")
         db_session.rollback()
 
-
-# Function to process job description files in a directory
-def process_job_descriptions_in_directory(directory_path):
-    # Open database session
+# Function to process a single job description file
+def process_single_job_description(file_name, directory_path):
     db_session = SessionLocal()
+    file_path = os.path.join(directory_path, file_name)
 
-    try:
-        for file_name in os.listdir(directory_path):
-            if file_name.endswith(".txt") or file_name.endswith(".pdf"):
-                file_path = os.path.join(directory_path, file_name)
-                print(f"\n=== Feldolgozás alatt: {file_name} ===\n")
+    if file_name.endswith(".txt") or file_name.endswith(".pdf"):
+        print(f"\n=== Feldolgozás alatt: {file_name} ===\n")
 
-                # Extract text based on file type
-                if file_name.endswith(".txt"):
-                    # Read the job description from the text file
-                    try:
-                        with open(file_path, "r", encoding="utf-8") as file:
-                            job_text = file.read()
-                    except Exception as file_err:
-                        print(f"Hiba történt a fájl beolvasása közben: {file_err}")
-                        continue
+        if file_name.endswith(".txt"):
+            try:
+                with open(file_path, "r", encoding="utf-8") as file:
+                    job_text = file.read()
+            except Exception as file_err:
+                print(f"Hiba történt a fájl beolvasása közben: {file_err}")
+                return
 
-                elif file_name.endswith(".pdf"):
-                    # Read the job description from the PDF file
-                    job_text = extract_text_from_pdf(file_path)
+        elif file_name.endswith(".pdf"):
+            job_text = extract_text_from_pdf(file_path)
 
-                # If text extraction was successful, proceed to ChatGPT API call
-                if job_text:
-                    extracted_info = extract_job_info(job_text)
+        if job_text:
+            extracted_info = extract_job_info(job_text)
+            if extracted_info:
+                print("\n=== Kinyert adatok ===\n")
+                print(json.dumps(extracted_info, indent=2, ensure_ascii=False))
+                save_job_description_to_db(extracted_info, db_session)
 
-                    # Save the extracted information to the database
-                    if extracted_info:
-                        print("\n=== Kinyert adatok ===\n")
-                        print(json.dumps(extracted_info, indent=2, ensure_ascii=False))
-                        save_job_description_to_db(extracted_info, db_session)
+    db_session.close()
 
-    except Exception as dir_err:
-        print(f"Hiba történt a könyvtár feldolgozása közben: {dir_err}")
+# Function to process job description files in a directory using threading
+def process_job_descriptions_in_directory(directory_path, max_workers=10):
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        file_names = [file_name for file_name in os.listdir(directory_path) if file_name.endswith(".txt") or file_name.endswith(".pdf")]
+        for file_name in file_names:
+            executor.submit(process_single_job_description, file_name, directory_path)
 
-    finally:
-        # Close the database session
-        db_session.close()
-
-
+# Example usage
 if __name__ == "__main__":
     job_directory = "../dataset/job_descriptions"  # Directory where your job description files are located
     process_job_descriptions_in_directory(job_directory)

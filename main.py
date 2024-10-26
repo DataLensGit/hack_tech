@@ -1,6 +1,5 @@
 from fastapi import FastAPI, Request, HTTPException, Form, Depends, File, UploadFile
-from core.endpoint_logic import load_all_avaliable_modules, load_module, templates
-from addons.sample_module.controllers import router as sample_module_router
+
 from core.database import engine, Base  # Importáld az engine-t és a Base-t
 from core.authentication import verify_password, get_user_by_username, create_access_token, decode_jwt
 from fastapi.staticfiles import StaticFiles
@@ -30,20 +29,7 @@ app = FastAPI()
 # Statikus fájlok kezelése
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-app.include_router(sample_module_router, prefix="/sample_module")
-
-# Jinja2 szűrő hozzáadása a FastAPI alkalmazáshoz
-templates.env.filters['decode_jwt'] = decode_jwt
-
-# Kezdőoldal: modulok listázása
-@app.get("/")
-def home(request: Request):
-    return load_all_avaliable_modules(request)
-
 # Modul oldalak kezelése
-@app.get("/modules/{module_name}")
-def get_module(module_name: str, request: Request):
-    return load_module(module_name, request)
 
 @app.post("/login")
 def login(username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
@@ -59,9 +45,6 @@ def login(username: str = Form(...), password: str = Form(...), db: Session = De
     response.set_cookie(key="access_token", value=access_token)
     return response
 
-@app.get("/login")
-async def login_get(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
 
 # PDF feldolgozás a dataset mappából
 @app.post("/process-dataset")

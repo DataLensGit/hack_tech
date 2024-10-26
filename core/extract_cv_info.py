@@ -5,6 +5,7 @@ import PyPDF2
 from datetime import datetime
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
+from concurrent.futures import ThreadPoolExecutor
 
 # Import your database session and models
 from core.database import SessionLocal
@@ -71,11 +72,8 @@ def extract_cv_info(cv_text, file_name):
             temperature=0.5
         )
 
-        # Check if the response has content
         if response and 'choices' in response and len(response['choices']) > 0:
             content = response['choices'][0]['message']['content'].strip()
-
-            # Try parsing the content to JSON
             try:
                 return json.loads(content)
             except json.JSONDecodeError:
@@ -106,26 +104,26 @@ def extract_text_from_pdf(pdf_path):
         print(f"Hiba történt a PDF szöveg kinyerése közben: {e}")
         return None
 
+
 def safe_year_conversion(year_str):
     try:
         return int(year_str)
     except (ValueError, TypeError):
         return None
+
+
 # Function to save extracted data to the database
 def save_extracted_data_to_db(extracted_info, file_name, db_session):
     if not extracted_info:
         return
 
-    # Print the extracted info for debugging
     print(f"\n=== Kinyert adatok ({file_name}) ===\n")
     print(json.dumps(extracted_info, indent=2, ensure_ascii=False))
 
-    # Get candidate's personal information
     first_name = extracted_info.get("FirstName", "N/A")
     last_name = extracted_info.get("LastName", "N/A")
     email = extracted_info.get("Email", "N/A")
 
-    # Create a new candidate in the database
     candidate = create_candidate(
         db=db_session,
         first_name=first_name,
@@ -133,7 +131,6 @@ def save_extracted_data_to_db(extracted_info, file_name, db_session):
         email=email,
     )
 
-    # Save Industry Experience as Projects (example)
     if "IndustryExperience" in extracted_info:
         for industry in extracted_info["IndustryExperience"]:
             add_project(
@@ -145,7 +142,6 @@ def save_extracted_data_to_db(extracted_info, file_name, db_session):
                 end_date=None
             )
 
-    # Save Technical Skills
     if "TechnicalSkills" in extracted_info:
         for skill in extracted_info["TechnicalSkills"]:
             skill_name = skill.get("SkillName")
@@ -157,7 +153,6 @@ def save_extracted_data_to_db(extracted_info, file_name, db_session):
                 skill_level=skill_level
             )
 
-    # Save Certifications
     if "RelevantCertifications" in extracted_info:
         for cert in extracted_info["RelevantCertifications"]:
             add_certificate(
@@ -166,7 +161,6 @@ def save_extracted_data_to_db(extracted_info, file_name, db_session):
                 certificate_name=cert
             )
 
-    # Save Job Titles as Experiences
     if "JobTitles" in extracted_info and "Responsibilities" in extracted_info:
         for job_title, responsibility in zip(extracted_info["JobTitles"], extracted_info["Responsibilities"]):
             add_experience(
@@ -177,17 +171,15 @@ def save_extracted_data_to_db(extracted_info, file_name, db_session):
                 description=responsibility
             )
 
-    # Save Tools & Technologies as Skills
     if "ToolsTechnologies" in extracted_info:
         for tool in extracted_info["ToolsTechnologies"]:
             add_skill(
                 db=db_session,
                 candidate_id=candidate.id,
                 skill_name=tool,
-                skill_level="Intermediate"  # Default level, adjust as needed
+                skill_level="Intermediate"
             )
 
-    # Save Languages
     if "Languages" in extracted_info:
         for language in extracted_info["Languages"]:
             add_language(
@@ -197,7 +189,6 @@ def save_extracted_data_to_db(extracted_info, file_name, db_session):
                 proficiency=language.get("Proficiency")
             )
 
-    # Save Education details
     if "Education" in extracted_info:
         for edu in extracted_info["Education"]:
             start_year = safe_year_conversion(edu.get("StartYear"))
@@ -213,7 +204,6 @@ def save_extracted_data_to_db(extracted_info, file_name, db_session):
                 field_of_study=edu.get("FieldOfStudy")
             )
 
-    # Save the CV file as an attachment
     add_attachment(
         db=db_session,
         candidate_id=candidate.id,
@@ -223,29 +213,29 @@ def save_extracted_data_to_db(extracted_info, file_name, db_session):
     )
 
 
-# Function to process CV files in a directory
-def process_cvs_in_directory(directory_path):
-    # Open database session
+# Function to process a single CV file
+def process_single_cv(file_name, directory_path):
     db_session = SessionLocal()
+    pdf_path = os.path.join(directory_path, file_name)
 
-    for file_name in os.listdir(directory_path):
-        if file_name.endswith(".pdf"):
-            pdf_path = os.path.join(directory_path, file_name)
-            print(f"\n=== Feldolgozás alatt: {file_name} ===\n")
+    if file_name.endswith(".pdf"):
+        print(f"\n=== Feldolgozás alatt: {file_name} ===\n")
 
-            # Use PDF-to-text extraction
-            cv_text = extract_text_from_pdf(pdf_path)
+        cv_text = extract_text_from_pdf(pdf_path)
+        if cv_text:
+            extracted_info = extract_cv_info(cv_text, file_name)
+            if extracted_info:
+                save_extracted_data_to_db(extracted_info, file_name, db_session)
 
-            # If text extraction was successful, proceed to ChatGPT API call
-            if cv_text:
-                extracted_info = extract_cv_info(cv_text, file_name)
-
-                # Save the extracted information to the database
-                if extracted_info:
-                    save_extracted_data_to_db(extracted_info, file_name, db_session)
-
-    # Close the database session
     db_session.close()
+
+
+# Function to process CV files in a directory using threading
+def process_cvs_in_directory(directory_path, max_workers=10):
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        file_names = [file_name for file_name in os.listdir(directory_path) if file_name.endswith(".pdf")]
+        for file_name in file_names:
+            executor.submit(process_single_cv, file_name, directory_path)
 
 
 # Example usage
