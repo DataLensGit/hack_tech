@@ -18,7 +18,7 @@ def generate_data():
             "image": f"/static/img/sample_image_{i}.jpg",
             "name": f"Item {i}",
             "description": f"This is a description for item {i}.",
-            "rating": round(random.uniform(1, 5), 2)
+            "rating": random.uniform(1, 100)
         }
         items.append(item)
 

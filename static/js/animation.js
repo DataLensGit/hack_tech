@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-    document.querySelector('#triangle path').style.stroke = '#008bad';
 
     setTimeout(() => {
         document.querySelector('body').style.opacity = 1;
@@ -10,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
         height: "0%",
         duration: 1.25,
         ease: 'power3.out',
-        delay: 0.25
+        delay: 0.15
     });
 
     gsap.from('h2', {
