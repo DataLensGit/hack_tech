@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     // Ha a feltöltés sikeres, navigáljunk a results.html oldalra
                     window.location.href = '/results?param1=example&param2=123';
                 } else {
-                    window.location.href = '/results?param1=Candidate&param2=Vagyamitakarsz';
+                    window.location.href = '/results?param1=Job&param2=Vagyamitakarsz';
                     console.error('Hiba a fájl feltöltésekor');
                 }
             } catch (error) {

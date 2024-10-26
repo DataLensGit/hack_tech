@@ -258,6 +258,12 @@ textarea:focus {
     outline: none;
 }
 
+#job-description::placeholder {
+    text-align: center;
+    color: #888;
+    font-style: italic;
+}
+
 .loader {
     width: 100%;
     height: 100vh;

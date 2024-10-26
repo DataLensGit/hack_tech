@@ -96,7 +96,7 @@ async def upload_audio(file: UploadFile = File(...)):
 
 
 @app.get("/results")
-async def results_page(request: Request, param1: Optional[str] = None, param2: Optional[int] = None):
+async def results_page(request: Request, param1: Optional[str] = None, param2: Optional[str] = None):
     # Itt feldolgozhatod a paramétereket
     data = generate_data(param1, param2)  # Példa a paraméterek továbbítására
     return templates.TemplateResponse("results.html", {
