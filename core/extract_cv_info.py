@@ -1,75 +1,100 @@
+import os
+import openai
+import json
 import PyPDF2
-import re
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
-def extract_text_from_pdf(pdf_path: str) -> str:
-    """PDF fájlból szöveg kinyerése"""
-    text = ""
+# Function to extract information from CV using ChatGPT
+def extract_cv_info(cv_text):
+    prompt = f"""
+    Extract the following data from the candidate's CV. Provide the information in JSON format with the keys:
+    "IndustryExperience", "TechnicalSkills", "RelevantCertifications", "JobTitles", "Responsibilities", "ToolsTechnologies".
+
+    Example format:
+    {{
+        "IndustryExperience": ["Banking", "Healthcare"],
+        "TechnicalSkills": [
+            {{"SkillName": "Python", "Level": "Expert"}},
+            {{"SkillName": "JavaScript", "Level": "Intermediate"}}
+        ],
+        "RelevantCertifications": ["AWS Certified Solutions Architect", "Certified Scrum Master"],
+        "JobTitles": ["Software Engineer", "Backend Developer"],
+        "Responsibilities": ["Led a team of 5 developers", "Implemented CI/CD pipelines"],
+        "ToolsTechnologies": ["Docker", "Kubernetes", "AWS", "React"]
+    }}
+
+    CV Content:
+    {cv_text}
+    """
+
     try:
-        with open(pdf_path, 'rb') as file:
-            reader = PyPDF2.PdfReader(file)
-            for page in reader.pages:
-                text += page.extract_text() + "\n"
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.5
+        )
+
+        # Check if the response has content
+        if response and 'choices' in response and len(response['choices']) > 0:
+            content = response['choices'][0]['message']['content'].strip()
+
+            # Try parsing the content to JSON
+            try:
+                return json.loads(content)
+            except json.JSONDecodeError:
+                print("Hiba: A ChatGPT API válasza nem volt érvényes JSON formátumban.")
+                print(f"Kapott tartalom: {content}")
+                return None
+        else:
+            print("Hiba: A ChatGPT API nem adott vissza megfelelő választ.")
+            return None
+
     except Exception as e:
-        print(f"Hiba történt a PDF feldolgozása közben: {e}")
-    return text
+        print(f"Hiba történt a ChatGPT API hívása közben: {e}")
+        return None
 
 
-def split_text_into_blocks(text: str) -> dict:
-    """Nyers szöveg logikai blokkokra bontása"""
-    # Alapértelmezett blokkok létrehozása
-    blocks = {
-        "personal_info": "",
-        "education": [],
-        "experience": [],
-        "skills": []
-    }
+# Function to extract text from a PDF file
+def extract_text_from_pdf(pdf_path):
+    try:
+        with open(pdf_path, "rb") as file:
+            reader = PyPDF2.PdfReader(file)
+            text = ""
+            for page in reader.pages:
+                page_text = page.extract_text()
+                if page_text:
+                    text += page_text + "\n"
+            return text
+    except Exception as e:
+        print(f"Hiba történt a PDF szöveg kinyerése közben: {e}")
+        return None
 
-    # Szöveg sorokra bontása
-    lines = text.split('\n')
 
-    current_block = "personal_info"
-    current_content = []
+# Function to process CV files in a directory
+def process_cvs_in_directory(directory_path):
+    for file_name in os.listdir(directory_path):
+        if file_name.endswith(".pdf"):
+            pdf_path = os.path.join(directory_path, file_name)
+            print(f"\n=== Feldolgozás alatt: {file_name} ===\n")
 
-    # Kulcsszavak definíciója a blokkokhoz
-    block_keywords = {
-        "education": ["education", "study", "university", "degree"],
-        "experience": ["experience", "employment", "worked", "professional"],
-        "skills": ["skills", "technologies", "abilities", "competencies"]
-    }
+            # Use PDF-to-text extraction
+            cv_text = extract_text_from_pdf(pdf_path)
 
-    # Sorok elemzése logikai blokkok szerint
-    for line in lines:
-        line_lower = line.strip().lower()
+            # If text extraction was successful, proceed to ChatGPT API call
+            if cv_text:
+                extracted_info = extract_cv_info(cv_text)
 
-        # Blokk váltás, ha a sorban kulcsszó található
-        if any(keyword in line_lower for keyword in block_keywords["education"]):
-            if current_content:
-                blocks[current_block].append(" ".join(current_content)) if isinstance(blocks[current_block], list) else \
-                blocks[current_block] + " ".join(current_content)
-                current_content = []
-            current_block = "education"
-        elif any(keyword in line_lower for keyword in block_keywords["experience"]):
-            if current_content:
-                blocks[current_block].append(" ".join(current_content)) if isinstance(blocks[current_block], list) else \
-                blocks[current_block] + " ".join(current_content)
-                current_content = []
-            current_block = "experience"
-        elif any(keyword in line_lower for keyword in block_keywords["skills"]):
-            if current_content:
-                blocks[current_block].append(" ".join(current_content)) if isinstance(blocks[current_block], list) else \
-                blocks[current_block] + " ".join(current_content)
-                current_content = []
-            current_block = "skills"
+                # Print the extracted information
+                if extracted_info:
+                    print("\n=== Kinyert adatok ===\n")
+                    print(json.dumps(extracted_info, indent=2, ensure_ascii=False))
 
-        # Jelenlegi sor hozzáadása az aktuális blokkhoz
-        if line.strip():
-            current_content.append(line.strip())
 
-    # Maradék tartalom hozzáadása az utolsó blokkhoz
-    if current_content:
-        blocks[current_block].append(" ".join(current_content)) if isinstance(blocks[current_block], list) else blocks[
-                                                                                                                    current_block] + " ".join(
-            current_content)
-
-    return blocks
+# Example usage
+cv_directory = "../cv-s"  # Directory where your CV files are located
+process_cvs_in_directory(cv_directory)

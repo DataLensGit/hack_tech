@@ -4,8 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d44df78d-462c-4bb5-9538-7dbdf75d44af" name="Changes" comment="">
+    <list default="true" id="d44df78d-462c-4bb5-9538-7dbdf75d44af" name="Changes" comment="convert to pdf">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/authentication.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/authentication.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/candidates_models.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/candidates_models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/extract_cv_info.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/extract_cv_info.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -228,7 +231,15 @@
       <option name="project" value="LOCAL" />
       <updated>1729929135404</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="convert to pdf">
+      <option name="closed" value="true" />
+      <created>1729929433677</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1729929433677</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -248,6 +259,7 @@
     <MESSAGE value="heroku test" />
     <MESSAGE value="init_commit" />
     <MESSAGE value="database_init" />
-    <option name="LAST_COMMIT_MESSAGE" value="database_init" />
+    <MESSAGE value="convert to pdf" />
+    <option name="LAST_COMMIT_MESSAGE" value="convert to pdf" />
   </component>
 </project>
