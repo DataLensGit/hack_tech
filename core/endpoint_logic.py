@@ -6,8 +6,11 @@ from fastapi import HTTPException, UploadFile, File
 from core.database import engine
 import sys
 import random
+from typing import List
 # Templating rendszer (Jinja2)
 templates = Jinja2Templates(directory="templates")
+
+
 
 def generate_data(param1=None, param2=None):
     # 5 objektum létrehozása, mindegyik tartalmaz képet, nevet, leírást és értékelést

@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from fastapi.responses import RedirectResponse
 import logging
 from typing import Optional
+from typing import List
 
 
 # Logger beállítása
@@ -93,6 +94,7 @@ async def upload_audio(file: UploadFile = File(...)):
         return {"transcription": transcription}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Nem sikerült feldolgozni a hangfájlt: {str(e)}")
+
 
 
 @app.get("/results")
