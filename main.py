@@ -111,8 +111,6 @@ async def results_page(request: Request, param1: Optional[str] = None, param2: O
     })
 
 
-
-# Pydantic modell a beérkező adatokhoz (csak JSON esetén használjuk)
 class Keyword(BaseModel):
     skill: str
     weight: int
@@ -131,20 +129,24 @@ async def submit_job(
     cv: Optional[UploadFile] = File(None)
 ):
     try:
-        # Ha van csatolt fájl, olvassuk be annak tartalmát
+        # Fájl név ellenőrzése (nem olvassuk be a tartalmát)
         if cv:
-            cv_content = await cv.read()
-            # Itt tudod menteni vagy feldolgozni a csatolt dokumentumot
+            cv_filename = cv.filename
+            print(f"Fájl neve: {cv_filename}")
 
         # Logikailag feldolgozhatod az adatokat
         print("Industry:", industry)
         print("Job Description:", jobDescription)
         print("Keywords:", keywords)
-        if cv:
-            print("CV filename:", cv.filename)
 
         # Visszaadunk egy válasz üzenetet
-        return {"status": "success", "industry": industry, "jobDescription": jobDescription, "keywords": keywords}
+        return {
+            "status": "success",
+            "industry": industry,
+            "jobDescription": jobDescription,
+            "keywords": keywords,
+            "cv_filename": cv_filename if cv else None
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Nem sikerült feldolgozni a kérést: {str(e)}")
 

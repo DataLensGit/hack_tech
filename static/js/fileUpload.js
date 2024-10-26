@@ -1,5 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     const jobDescriptionTextarea = document.getElementById('job-description');
+    const submitButton = document.getElementById('submit-job');
+    const cvInput = document.getElementById('cv');
+    let attachedFile = null;  // Változó a hozzáadott fájl tárolására
 
     // Drag and drop események kezelése
     jobDescriptionTextarea.addEventListener('dragover', (event) => {
@@ -11,32 +14,59 @@ document.addEventListener('DOMContentLoaded', () => {
         jobDescriptionTextarea.style.border = ""; // Eredeti stílus visszaállítása
     });
 
-    jobDescriptionTextarea.addEventListener('drop', async (event) => {
+    jobDescriptionTextarea.addEventListener('drop', (event) => {
         event.preventDefault();
         jobDescriptionTextarea.style.border = ""; // Eredeti stílus visszaállítása
 
         const file = event.dataTransfer.files[0];
         if (file && file.type === 'application/pdf') {
-            // A PDF fájl küldése a backendre
-            const formData = new FormData();
-            formData.append('file', file);
+            // A fájlt eltároljuk a változóban
+            attachedFile = file;
 
-            try {
-                const response = await fetch('http://localhost:8000/upload-pdf', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (response.ok) {
-                    window.location.href = '/results?param1=Candidate&param2=the Job';
-                } else {
-                    window.location.href = '/results?param1=Candidate&param2=the Job';
-                }
-            } catch (error) {
-                console.error('Hiba a fájl feltöltése közben:', error);
-            }
+            // Vizualis visszajelzés a felhasználónak
+            jobDescriptionTextarea.value = `Fájl hozzáadva: ${file.name}`;
         } else {
             alert('Csak PDF fájlokat lehet ide húzni.');
         }
+    });
+
+    // Submit esemény figyelése
+    submitButton.addEventListener('click', () => {
+        const formData = new FormData();
+        const industry = document.getElementById('industry').value;
+        const jobDescription = jobDescriptionTextarea.value;
+
+        // Hozzáadjuk az Industry és a jobDescription mezőket
+        formData.append('industry', industry);
+        formData.append('jobDescription', jobDescription);
+
+        // Ha van csatolt fájl, azt is hozzáadjuk
+        if (attachedFile) {
+            formData.append('cv', attachedFile);
+        }
+
+        // Kulcsszavak összegyűjtése
+        document.querySelectorAll('.keywords .line').forEach((line, index) => {
+            const skill = line.querySelector('input[type="text"]:first-child').value;
+            const weight = line.querySelector('input[type="text"]:nth-child(2)').value;
+            if (skill && weight) {
+                formData.append(`keywords[${index}][skill]`, skill);
+                formData.append(`keywords[${index}][weight]`, weight);
+            }
+        });
+
+        // POST kérés küldése a backendnek
+        fetch('/submit-job', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Válasz a szervertől:', data);
+            // Ide jöhet a további feldolgozás
+        })
+        .catch(error => {
+            console.error('Hiba történt az adatok küldése közben:', error);
+        });
     });
 });
