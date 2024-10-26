@@ -1,6 +1,7 @@
-from fastapi import FastAPI, Request, HTTPException, Form, Depends, UploadFile, File
+from fastapi import FastAPI, Request, HTTPException, Form, Depends, UploadFile, File, WebSocket
 import os
-from core.endpoint_logic import load_all_avaliable_modules, load_module, templates, handle_file_upload
+from core.endpoint_logic import load_all_avaliable_modules, load_module, templates, handle_file_upload, generate_data
+from core.microphone import transcribe_audio
 from addons.sample_module.controllers import router as sample_module_router
 from core.database import engine, Base  # Importáld az engine-t és a Base-t
 from core.authentication import verify_password, get_user_by_username, create_access_token, decode_jwt
@@ -66,6 +67,31 @@ async def login_get(request: Request):
 async def upload_pdf(file: UploadFile = File(...)):
     # Meghívjuk a handle_file_upload függvényt az endpoint_logic modulból
     return handle_file_upload(file)
+
+@app.get("/get-items")
+async def get_items():
+    # Meghívjuk a generate_data függvényt, és visszaküldjük az eredményt
+    return generate_data()
+
+@app.get("/test")
+async def login_get(request: Request):
+    return templates.TemplateResponse("test.html", {"request": request})
+
+
+@app.post("/upload-audio")
+async def upload_audio(file: UploadFile = File(...)):
+    if not file.content_type.startswith("audio/"):
+        raise HTTPException(status_code=400, detail="Csak audio fájlokat lehet feltölteni")
+
+    # Audio fájl tartalmának beolvasása
+    audio_bytes = await file.read()
+
+    try:
+        # OpenAI Whisper feldolgozás
+        transcription = await transcribe_audio(audio_bytes)
+        return {"transcription": transcription}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Nem sikerült feldolgozni a hangfájlt: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
