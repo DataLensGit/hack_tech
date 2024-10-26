@@ -4,12 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d44df78d-462c-4bb5-9538-7dbdf75d44af" name="Changes" comment="Integrated voice transcript">
+    <list default="true" id="d44df78d-462c-4bb5-9538-7dbdf75d44af" name="Changes" comment="Params for result html">
+      <change afterPath="$PROJECT_DIR$/static/js/fileUpload.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/endpoint_logic.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/endpoint_logic.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/mainpage.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/mainpage.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/static/js/events.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/events.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/results.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/results.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/home.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/home.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -245,7 +246,15 @@
       <option name="project" value="LOCAL" />
       <updated>1729949278311</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="Params for result html">
+      <option name="closed" value="true" />
+      <created>1729953498920</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1729953498920</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -279,6 +288,7 @@
     <MESSAGE value="Base api routes" />
     <MESSAGE value="Base result page" />
     <MESSAGE value="Integrated voice transcript" />
-    <option name="LAST_COMMIT_MESSAGE" value="Integrated voice transcript" />
+    <MESSAGE value="Params for result html" />
+    <option name="LAST_COMMIT_MESSAGE" value="Params for result html" />
   </component>
 </project>
