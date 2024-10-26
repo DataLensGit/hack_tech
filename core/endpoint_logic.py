@@ -10,28 +10,7 @@ from typing import List
 # Templating rendszer (Jinja2)
 templates = Jinja2Templates(directory="templates")
 
-ITEMS = [
-    {"id": 1, "name": "Item 1", "description": "This is item 1"},
-    {"id": 2, "name": "Item 2", "description": "This is item 2"},
-    {"id": 3, "name": "Item 3", "description": "This is item 3"},
-    # További elemek itt
-]
 
-def get_item_list():
-    """Elemek listájának lekérése."""
-    try:
-        return ITEMS
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Nem sikerült lekérni az elemeket")
-
-def process_selected_items(selected_ids: List[int]):
-    """Kiválasztott elemek feldolgozása."""
-    try:
-        selected_items = [item for item in ITEMS if item["id"] in selected_ids]
-        # Itt teheted meg a kiválasztott elemekkel kapcsolatos feldolgozást
-        return {"status": "success", "selected_items": selected_items}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Nem sikerült feldolgozni a kiválasztott elemeket")
 
 def generate_data(param1=None, param2=None):
     # 5 objektum létrehozása, mindegyik tartalmaz képet, nevet, leírást és értékelést
