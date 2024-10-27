@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .then(response => response.json())
         .then(data => {
-            window.location.href = '/results?param1=Job&param2=you';
+            window.location.href = '/candidates?param1=Job&param2=you';
             console.log('Válasz a szervertől:', data);
             // Ide jöhet a további feldolgozás
         })

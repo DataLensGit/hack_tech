@@ -112,6 +112,22 @@ async def results_page(request: Request, param1: Optional[str] = None, param2: O
         "best_item_explanation": data['best_item_explanation']
     })
     db.close()
+
+@app.get("/candidates")
+async def results_page(request: Request, param1: Optional[str] = None, param2: Optional[str] = None):
+    db = SessionLocal()
+    initialize_industry_keywords_cache()
+    jobs = find_best_jobs_for_last_candidate(db)
+    data = generate_data(jobs, param1, param2)
+    return templates.TemplateResponse("results.html", {
+        "request": request,
+        "name":param1,
+        "pos":param2,
+        "items": data['items'],
+        "best_item_id": data['best_item_id'],
+        "best_item_explanation": data['best_item_explanation']
+    })
+    db.close()
 # Végpont a form adatok és fájl fogadására
 @app.post("/submit-job")
 async def submit_job(
