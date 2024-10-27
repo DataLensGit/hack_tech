@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
-
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 # PostgreSQL adatbázis elérési út az .env fájlból
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://testuser:ls47zGNb/3w07KvPC3sYEA==@server.datalensglobal.com/hacktech")
@@ -10,7 +10,11 @@ DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://testuser:ls47zGNb/3w07KvP
 # Adatbázis motor létrehozása
 try:
     print(f"Kapcsolódás az adatbázishoz: {DATABASE_URL}")
-    engine = create_engine(DATABASE_URL)
+    engine = create_engine(DATABASE_URL,
+                                    pool_size=10,  # Alapértelmezett érték: 5
+                                    max_overflow=20,  # Alapértelmezett érték: 10
+                                    pool_timeout=60,  # A kapcsolat várakozási ideje másodpercben
+                                                        )
     print("Sikeresen létrehoztuk az adatbázis motort.")
 except Exception as e:
     print(f"Hiba az adatbázis motor létrehozásakor: {e}")
@@ -18,7 +22,8 @@ except Exception as e:
 
 # Session local létrehozása
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
+SessionFactory = sessionmaker(bind=engine)
+SessionLocal = scoped_session(SessionFactory)
 # Alapmodell létrehozása
 Base = declarative_base()
 

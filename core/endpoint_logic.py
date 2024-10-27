@@ -3,31 +3,120 @@ import json
 import importlib
 from fastapi.templating import Jinja2Templates
 from fastapi import HTTPException, UploadFile, File
+from core.extract_job_info import process_single_job_description as job_pdf
+from core.extract_cv_info import process_single_cv as cv_pdf
 from core.database import engine
+from core.getjob import find_best_jobs_for_last_candidate
 import sys
 import random
-from typing import List
+from typing import List, Dict, Optional
+
 # Templating rendszer (Jinja2)
 templates = Jinja2Templates(directory="templates")
 
+import openai
 
+# Funkció az ajánlás generálásához a jelölt adatai alapján
+def generate_suggestion_for_candidate(candidate: Dict) -> str:
+    """
+    Meghívja a ChatGPT API-t, hogy egy rövid ajánlást adjon a jelöltről.
 
-def generate_data(param1=None, param2=None):
-    # 5 objektum létrehozása, mindegyik tartalmaz képet, nevet, leírást és értékelést
+    Args:
+        candidate (Dict): A jelölt adatai.
+
+    Returns:
+        str: A ChatGPT által generált rövid ajánlás.
+    """
+    prompt = f"""
+    Here is a candidate's name and score below. Write 2-3 sentences summarizing why the candidate would be a good fit for the given position.
+
+    Name:
+    {candidate['first_name']} {candidate['last_name']}
+
+    Score:
+    {candidate['score']}
+
+    Short recommenditation:
+    """
+
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7
+        )
+
+        # Az API válaszának feldolgozása
+        if response and 'choices' in response and len(response['choices']) > 0:
+            suggestion = response['choices'][0]['message']['content'].strip()
+            return suggestion
+        else:
+            return "Nem sikerült megfelelő választ generálni."
+
+    except Exception as e:
+        print(f"Error during API call: {e}")
+        return "Hiba történt a javaslat generálása során."
+
+# Jelölt adatok generálása a visszaküldéshez
+def generate_candidate_data(candidates: List[Dict], param1: Optional[str] = None, param2: Optional[str] = None) -> Dict:
     items = []
-    for i in range(1, 6):
+    best_item_id = None
+    best_score = 0
+
+    for i, candidate in enumerate(candidates):
+        # Rövid ajánlás generálása
+        suggestion = generate_suggestion_for_candidate(candidate)
+
         item = {
             "id": i,
-            "image": f"/static/img/sample_image_{i}.jpg",
-            "name": f"Item {i}",
-            "description": f"This is a description for item {i}.",
-            "rating": int(random.uniform(1, 100))  
+            "image": f"/static/img/sample_image_{i}.jpg",  # Ha van kép azonosítója, cseréld ki erre
+            "name": f"{candidate['first_name']} {candidate['last_name']}",
+            "description": f"Score: {candidate['score']:.1f}\nRecommendation: {suggestion}",
+            "rating": round(candidate['score'], 1)  # Pontszám egy tizedesjegyre kerekítve
         }
         items.append(item)
 
+        # A legjobb jelölt kiválasztása
+        if candidate['score'] > best_score:
+            best_score = candidate['score']
+            best_item_id = i
+
+    # Magyarázat a legjobb jelölt kiválasztására
+    best_item_explanation = f"The best canditate is {items[best_item_id]['name']} {items[best_item_id]['description']} " if best_item_id is not None else "No best candidate"
+
+    return {
+        "items": items,
+        "best_item_id": best_item_id,
+        "best_item_explanation": best_item_explanation
+    }
+def generate_data(jobs, param1=None, param2=None):
+    # 5 objektum létrehozása, mindegyik tartalmaz képet, nevet, leírást és értékelést
+    items = []
+    for i in range(len(jobs)):
+        job = jobs[i]  # Hivatkozunk az aktuális állás objektumra
+        item = {
+            "id": i,
+            "image": f"/static/img/sample_image_{i}.jpg",
+            "name": job["job_title"],  # Az állás nevére hivatkozunk
+            "description": job["suggestion"],
+            "rating": round(float(job["score"]), 1)  # Az állás pontszámára hivatkozunk, float típusra konvertálva
+        }
+        items.append(item)
+
+    # A legjobb értékelésű elem kiválasztása
+    best_item = max(items, key=lambda x: x["rating"])
+    best_item_id = best_item["id"]
+    best_item_explanation = f"The best position is {best_item['name']} with a rating of {best_item['rating']}."
+
+    return {
+        "items": items,
+        "best_item_id": best_item_id,
+        "best_item_explanation": best_item_explanation
+    }
+
     # Egy elem kiválasztása a legjobbnak
     best_item = max(items, key=lambda x: x['rating'])
-    best_item["explanation"] = f"This is why item {best_item['id']} is considered the best."
+    best_item["explanation"] = f"This is why this position {best_item['id']} is considered the best."
 
     return {
         "items": items,
@@ -35,7 +124,7 @@ def generate_data(param1=None, param2=None):
         "best_item_explanation": best_item['explanation']
     }
 
-def handle_file_upload(file: UploadFile):
+def handle_file_upload_job_description(file: UploadFile):
     # Ellenőrizzük, hogy a fájl PDF típusú-e
     print("Belépett")
     if file.content_type != "application/pdf":
@@ -45,74 +134,29 @@ def handle_file_upload(file: UploadFile):
     save_path = os.path.join("documents", file.filename)
     with open(save_path, "wb") as buffer:
         buffer.write(file.file.read())
-
+    job_pdf(save_path)
     return {"message": "Fájl sikeresen feltöltve", "filename": file.filename}
 
 
-def load_all_avaliable_modules(request):
-    modules = []
-    addons_path = os.path.join(os.getcwd(), "addons")
-    placeholder_img = "/static/img/placeholder.jpg"  # Helykitöltő kép, ha nincs logó
+def handle_file_upload_cv(file: UploadFile):
+    # Ellenőrizzük, hogy a fájl PDF típusú-e
+    print("Belépett")
+    if file.content_type != "application/pdf":
+        raise HTTPException(status_code=400, detail="Csak PDF fájlokat lehet feltölteni")
 
-    for module_dir in os.listdir(addons_path):
-        module_path = os.path.join(addons_path, module_dir)
-        info_path = os.path.join(module_path, "module_info.json")
-        css_path = f"/addons/{module_dir}/static/src/css/module.css"
-        img_path = f"/addons/{module_dir}/static/src/img/logo.jpg"
+    # Létrehozzuk a "documents" mappát, ha nem létezik
+    documents_dir = "documents"
+    os.makedirs(documents_dir, exist_ok=True)  # Ez létrehozza a könyvtárat, ha még nem létezik
 
-        if os.path.exists(info_path):
-            with open(info_path, 'r') as f:
-                module_info = json.load(f)
-                module_info['url'] = f"/modules/{module_dir}"  # Modul URL
-                if os.path.exists(os.path.join(module_path, "static/src/css/module.css")):
-                    module_info['css_path'] = css_path  # Modul-specifikus CSS
-                else:
-                    module_info['css_path'] = None  # Nincs modul-specifikus CSS
+    # PDF fájl mentése a "documents" mappába
+    save_path = os.path.join(documents_dir, file.filename)
+    with open(save_path, "wb") as buffer:
+        buffer.write(file.file.read())
 
-                # Ellenőrizzük, hogy van-e logó kép, ha nincs, használjunk helykitöltőt
-                if os.path.exists(os.path.join(module_path, "static/src/img/logo.jpg")):
-                    module_info['img_path'] = img_path
-                else:
-                    module_info['img_path'] = placeholder_img  # Helykitöltő kép
+    # A fájl feldolgozása a megfelelő függvény meghívásával
+    cv_pdf(file.filename, documents_dir)
 
-                # Ellenőrizzük, hogy a modul már hozzá van-e adva
-                if module_info not in modules:
-                    modules.append(module_info)
-
-    # Modulok megjelenítése a kezdőoldalon
-    return templates.TemplateResponse("home.html", {"request": request, "modules": modules})
-
-
-def load_module(module_name, request):
-    addons_path = os.path.join(os.getcwd(), "addons", module_name)
-    info_path = os.path.join(addons_path, "module_info.json")
-    template_dir = os.path.join(addons_path, "templates")
-    template_path = os.path.join(template_dir, "admin_homepage.html")
-
-    if not os.path.exists(info_path):
-        raise HTTPException(status_code=404, detail="Module not found")
-
-    if not os.path.exists(template_path):
-        raise HTTPException(status_code=404, detail="Module template not found")
-
-    with open(info_path, 'r') as f:
-        module_info = json.load(f)
-
-    # Templating rendszer (Jinja2) - dinamikusan állítjuk be az adott modul templates mappáját
-    templates = Jinja2Templates(directory=template_dir)
-
-    # Modul oldalt rendereljük
-    return templates.TemplateResponse("admin_homepage.html", {"request": request, "module": module_info})
-
-def test_database_connection():
-    try:
-        # Ellenőrizzük az adatbázis kapcsolatot az engine használatával
-        with engine.connect() as connection:
-            print("Sikeresen csatlakoztunk az adatbázishoz!")
-    except Exception as e:
-        print(f"Nem sikerült csatlakozni az adatbázishoz: {e}")
-        sys.exit(1)  # Kilépünk, ha az adatbázis kapcsolat sikertelen
-
+    return {"message": "Fájl sikeresen feltöltve", "filename": file.filename}
 
 if __name__ == "__main__":
     pass

@@ -32,6 +32,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Submit esemény figyelése
     submitButton.addEventListener('click', (event) => {
+        let loader = document.querySelector('.loader');
+        loader.style.display = 'flex';
+            setTimeout(() => {
+                loader.style.opacity = '1';
+            }, 20);
         event.preventDefault(); // Megakadályozzuk az alapértelmezett submit viselkedést
 
         const formData = new FormData();
@@ -67,9 +72,8 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .then(response => response.json())
         .then(data => {
-            window.location.href = '/results?param1=Job&param2=you';
+            window.location.href = '/candidates?param1=candidates&param2=you';
             console.log('Válasz a szervertől:', data);
-            // Ide jöhet a további feldolgozás
         })
         .catch(error => {
             console.error('Hiba történt az adatok küldése közben:', error);

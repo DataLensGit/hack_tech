@@ -4,9 +4,24 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d44df78d-462c-4bb5-9538-7dbdf75d44af" name="Changes" comment="Backend endpoint">
+    <list default="true" id="d44df78d-462c-4bb5-9538-7dbdf75d44af" name="Changes" comment="last rush2">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/234567.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/endpoint_logic.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/endpoint_logic.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/getjob.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/getjob.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/matching.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/matching.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/static/js/submit.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/submit.js" afterDir="false" />
+    </list>
+    <list id="dcecade8-6c22-43ff-8216-c1c7a7681758" name="Changes by horva" comment="">
+      <change beforePath="$PROJECT_DIR$/static/css/subpage.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/subpage.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/events.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/events.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/submit.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/submit.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/home.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/home.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/results.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/results.html" afterDir="false" />
+    </list>
+    <list id="4f1d6383-bf1d-439b-8191-4fdc5368510f" name="Changes by IP" comment="">
+      <change beforePath="$PROJECT_DIR$/static/css/subpage.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/subpage.css" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -16,31 +31,41 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Python Script" />
         <option value="HTML File" />
+        <option value="Python Script" />
       </list>
     </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="219b716a54b96a7ce150dfc24e1eb5de9a294c93" />
+        <entry key="$PROJECT_DIR$" value="master" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory">{
-  &quot;lastFilter&quot;: {
-    &quot;state&quot;: &quot;OPEN&quot;,
-    &quot;assignee&quot;: &quot;DataLensGit&quot;
-  }
-}</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/DataLensGit/hack_tech.git&quot;,
-    &quot;accountId&quot;: &quot;19043f89-0559-4e36-b27c-29c7fc034d5d&quot;
-  }
-}</component>
+  <component name="GithubDefaultAccount">
+    <option name="defaultAccountId" value="83f2c502-e397-4d96-8cb5-bc2feda81db2" />
+  </component>
+  <component name="LineStatusTrackerManager">
+    <file path="$PROJECT_DIR$/static/css/subpage.css">
+      <ranges>
+        <range start1="39" end1="39" start2="39" end2="40" changelist="4f1d6383-bf1d-439b-8191-4fdc5368510f" />
+        <range start1="73" end1="73" start2="74" end2="86" changelist="4f1d6383-bf1d-439b-8191-4fdc5368510f" />
+        <range start1="75" end1="75" start2="88" end2="96" changelist="dcecade8-6c22-43ff-8216-c1c7a7681758" />
+      </ranges>
+    </file>
+    <file path="$PROJECT_DIR$/static/js/submit.js">
+      <ranges>
+        <range start1="34" end1="34" start2="34" end2="39" changelist="dcecade8-6c22-43ff-8216-c1c7a7681758" />
+        <range start1="69" end1="70" start2="74" end2="75" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+        <range start1="71" end1="72" start2="76" end2="76" changelist="d44df78d-462c-4bb5-9538-7dbdf75d44af" />
+      </ranges>
+    </file>
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 7
 }</component>
@@ -55,18 +80,27 @@
     &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
     &quot;Python.add_parameter_to_user.executor&quot;: &quot;Run&quot;,
     &quot;Python.add_testuser.executor&quot;: &quot;Run&quot;,
+    &quot;Python.cache_logic.executor&quot;: &quot;Run&quot;,
+    &quot;Python.candidates_models.executor&quot;: &quot;Run&quot;,
     &quot;Python.controllers.executor&quot;: &quot;Run&quot;,
+    &quot;Python.convert_to_pdf.executor&quot;: &quot;Run&quot;,
     &quot;Python.create_new_module.executor&quot;: &quot;Run&quot;,
     &quot;Python.create_project_structure.executor&quot;: &quot;Run&quot;,
     &quot;Python.database.executor&quot;: &quot;Run&quot;,
+    &quot;Python.diktafon.executor&quot;: &quot;Run&quot;,
     &quot;Python.endpoint_logic.executor&quot;: &quot;Run&quot;,
+    &quot;Python.extract_cv_info.executor&quot;: &quot;Run&quot;,
+    &quot;Python.extract_job_info.executor&quot;: &quot;Run&quot;,
+    &quot;Python.inserting_data.executor&quot;: &quot;Run&quot;,
+    &quot;Python.job_description_model.executor&quot;: &quot;Run&quot;,
     &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;Python.matching.executor&quot;: &quot;Run&quot;,
     &quot;Python.reset_database.executor&quot;: &quot;Run&quot;,
     &quot;Python.test_database.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;frontend&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;dev__backend&quot;,
     &quot;last_opened_file_path&quot;: &quot;C:/Users/Hbali/PycharmProjects/Contract_generator/addons/admin_module/templates&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;promo.javascript&quot;
+    &quot;settings.editor.selected.configurable&quot;: &quot;org.jetbrains.plugins.github.ui.GithubSettingsConfigurable&quot;
   }
 }</component>
   <component name="RecentsManager">
@@ -75,10 +109,11 @@
       <recent name="C:\Users\Hbali\PycharmProjects\Contract_generator\addons" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Hbali\PycharmProjects\base_project\core" />
+      <recent name="C:\Users\Hbali\PycharmProjects\base_project\cv-s" />
       <recent name="C:\Users\Hbali\PycharmProjects\Contract_generator" />
       <recent name="C:\Users\Hbali\PycharmProjects\Base project\static\img" />
       <recent name="C:\Users\Hbali\PycharmProjects\Base project\core" />
-      <recent name="C:\Users\Hbali\PycharmProjects\Base project" />
     </key>
   </component>
   <component name="RunManager">
@@ -210,125 +245,125 @@
       <option name="project" value="LOCAL" />
       <updated>1729925545140</updated>
     </task>
-    <task id="LOCAL-00012" summary="Base api routes">
+    <task id="LOCAL-00012" summary="init_commit">
       <option name="closed" value="true" />
-      <created>1729937878702</created>
+      <created>1729926438690</created>
       <option name="number" value="00012" />
       <option name="presentableId" value="LOCAL-00012" />
       <option name="project" value="LOCAL" />
-      <updated>1729937878702</updated>
+      <updated>1729926438690</updated>
     </task>
-    <task id="LOCAL-00013" summary="Base result page">
+    <task id="LOCAL-00013" summary="database_init">
       <option name="closed" value="true" />
-      <created>1729947148650</created>
+      <created>1729928823566</created>
       <option name="number" value="00013" />
       <option name="presentableId" value="LOCAL-00013" />
       <option name="project" value="LOCAL" />
-      <updated>1729947148650</updated>
+      <updated>1729928823566</updated>
     </task>
-    <task id="LOCAL-00014" summary="Base result page">
+    <task id="LOCAL-00014" summary="database_init">
       <option name="closed" value="true" />
-      <created>1729947209967</created>
+      <created>1729929135404</created>
       <option name="number" value="00014" />
       <option name="presentableId" value="LOCAL-00014" />
       <option name="project" value="LOCAL" />
-      <updated>1729947209967</updated>
+      <updated>1729929135404</updated>
     </task>
-    <task id="LOCAL-00015" summary="Integrated voice transcript">
+    <task id="LOCAL-00015" summary="debugbackend">
       <option name="closed" value="true" />
-      <created>1729949278311</created>
+      <created>1729935375308</created>
       <option name="number" value="00015" />
       <option name="presentableId" value="LOCAL-00015" />
       <option name="project" value="LOCAL" />
-      <updated>1729949278311</updated>
+      <updated>1729935375308</updated>
     </task>
-    <task id="LOCAL-00016" summary="Params for result html">
+    <task id="LOCAL-00016" summary="offer analysis done">
       <option name="closed" value="true" />
-      <created>1729953498920</created>
+      <created>1729941397652</created>
       <option name="number" value="00016" />
       <option name="presentableId" value="LOCAL-00016" />
       <option name="project" value="LOCAL" />
-      <updated>1729953498920</updated>
+      <updated>1729941397652</updated>
     </task>
-    <task id="LOCAL-00017" summary="Textarea for company has been changed, drag and drop added">
+    <task id="LOCAL-00017" summary="matching">
       <option name="closed" value="true" />
-      <created>1729955437399</created>
+      <created>1729942966003</created>
       <option name="number" value="00017" />
       <option name="presentableId" value="LOCAL-00017" />
       <option name="project" value="LOCAL" />
-      <updated>1729955437399</updated>
+      <updated>1729942966003</updated>
     </task>
-    <task id="LOCAL-00018" summary="Textarea for company has been changed, drag and drop added">
+    <task id="LOCAL-00018" summary="nemtommennyireszar">
       <option name="closed" value="true" />
-      <created>1729955729723</created>
+      <created>1729957715938</created>
       <option name="number" value="00018" />
       <option name="presentableId" value="LOCAL-00018" />
       <option name="project" value="LOCAL" />
-      <updated>1729955729723</updated>
+      <updated>1729957715938</updated>
     </task>
-    <task id="LOCAL-00019" summary="Job kis J vel">
+    <task id="LOCAL-00019" summary="nemtommennyireszarvedfbergrefbergb">
       <option name="closed" value="true" />
-      <created>1729958472471</created>
+      <created>1729965433992</created>
       <option name="number" value="00019" />
       <option name="presentableId" value="LOCAL-00019" />
       <option name="project" value="LOCAL" />
-      <updated>1729958472471</updated>
+      <updated>1729965433992</updated>
     </task>
-    <task id="LOCAL-00020" summary="Nagyon nagy szopás vége">
+    <task id="LOCAL-00020" summary="nemtommennyireszarvedfbergrefbergb">
       <option name="closed" value="true" />
-      <created>1729964596077</created>
+      <created>1729970921528</created>
       <option name="number" value="00020" />
       <option name="presentableId" value="LOCAL-00020" />
       <option name="project" value="LOCAL" />
-      <updated>1729964596077</updated>
+      <updated>1729970921528</updated>
     </task>
-    <task id="LOCAL-00021" summary="Endpontok a keywordsok">
+    <task id="LOCAL-00021" summary="jólettamatch">
       <option name="closed" value="true" />
-      <created>1729966043735</created>
+      <created>1729972294684</created>
       <option name="number" value="00021" />
       <option name="presentableId" value="LOCAL-00021" />
       <option name="project" value="LOCAL" />
-      <updated>1729966043735</updated>
+      <updated>1729972294684</updated>
     </task>
-    <task id="LOCAL-00022" summary="Wrong endpoints delete">
+    <task id="LOCAL-00022" summary="ezthasználdKristóf">
       <option name="closed" value="true" />
-      <created>1729966576197</created>
+      <created>1729975838468</created>
       <option name="number" value="00022" />
       <option name="presentableId" value="LOCAL-00022" />
       <option name="project" value="LOCAL" />
-      <updated>1729966576197</updated>
+      <updated>1729975838468</updated>
     </task>
-    <task id="LOCAL-00023" summary="Endpoint for submit.js">
+    <task id="LOCAL-00023" summary="qwertzuiop">
       <option name="closed" value="true" />
-      <created>1729970137944</created>
+      <created>1729980203816</created>
       <option name="number" value="00023" />
       <option name="presentableId" value="LOCAL-00023" />
       <option name="project" value="LOCAL" />
-      <updated>1729970137944</updated>
+      <updated>1729980203816</updated>
     </task>
-    <task id="LOCAL-00024" summary="Ez se lesz jó de updatelni kell">
+    <task id="LOCAL-00024" summary="last rush">
       <option name="closed" value="true" />
-      <created>1729970706128</created>
+      <created>1730013683167</created>
       <option name="number" value="00024" />
       <option name="presentableId" value="LOCAL-00024" />
       <option name="project" value="LOCAL" />
-      <updated>1729970706128</updated>
+      <updated>1730013683167</updated>
     </task>
-    <task id="LOCAL-00025" summary="Update endpoint, try update">
+    <task id="LOCAL-00025" summary="last rush2">
       <option name="closed" value="true" />
-      <created>1729971694749</created>
+      <created>1730014080737</created>
       <option name="number" value="00025" />
       <option name="presentableId" value="LOCAL-00025" />
       <option name="project" value="LOCAL" />
-      <updated>1729971694749</updated>
+      <updated>1730014080737</updated>
     </task>
-    <task id="LOCAL-00026" summary="Backend endpoint">
+    <task id="LOCAL-00026" summary="Changes by HAdrian">
       <option name="closed" value="true" />
-      <created>1729972016212</created>
+      <created>1730014251697</created>
       <option name="number" value="00026" />
       <option name="presentableId" value="LOCAL-00026" />
       <option name="project" value="LOCAL" />
-      <updated>1729972016212</updated>
+      <updated>1730014251697</updated>
     </task>
     <option name="localTasksCounter" value="27" />
     <servers />
@@ -338,19 +373,7 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State>
-              <option name="FILTERS">
-                <map>
-                  <entry key="branch">
-                    <value>
-                      <list>
-                        <option value="origin/frontend" />
-                      </list>
-                    </value>
-                  </entry>
-                </map>
-              </option>
-            </State>
+            <State />
           </value>
         </entry>
       </map>
@@ -361,19 +384,18 @@
     <MESSAGE value="first ever commit" />
     <MESSAGE value="heroku test" />
     <MESSAGE value="init_commit" />
-    <MESSAGE value="Base api routes" />
-    <MESSAGE value="Base result page" />
-    <MESSAGE value="Integrated voice transcript" />
-    <MESSAGE value="Params for result html" />
-    <MESSAGE value="Textarea for company has been changed, drag and drop added" />
-    <MESSAGE value="Job kis J vel" />
-    <MESSAGE value="Nagyon nagy szopás vége" />
-    <MESSAGE value="Endpontok a keywordsok" />
-    <MESSAGE value="Wrong endpoints delete" />
-    <MESSAGE value="Endpoint for submit.js" />
-    <MESSAGE value="Ez se lesz jó de updatelni kell" />
-    <MESSAGE value="Update endpoint, try update" />
-    <MESSAGE value="Backend endpoint" />
-    <option name="LAST_COMMIT_MESSAGE" value="Backend endpoint" />
+    <MESSAGE value="database_init" />
+    <MESSAGE value="debugbackend" />
+    <MESSAGE value="offer analysis done" />
+    <MESSAGE value="matching" />
+    <MESSAGE value="nemtommennyireszar" />
+    <MESSAGE value="nemtommennyireszarvedfbergrefbergb" />
+    <MESSAGE value="jólettamatch" />
+    <MESSAGE value="ezthasználdKristóf" />
+    <MESSAGE value="qwertzuiop" />
+    <MESSAGE value="last rush" />
+    <MESSAGE value="last rush2" />
+    <MESSAGE value="Changes by HAdrian" />
+    <option name="LAST_COMMIT_MESSAGE" value="Changes by HAdrian" />
   </component>
 </project>
