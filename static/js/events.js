@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function () {
             formData.append('file', file);
 
             try {
-                const response = await fetch('http://localhost:8000/upload-pdf', {
+                const response = await fetch('http://localhost:8000/upload-pdf-cv', {
                     method: 'POST',
                     body: formData
                 });

@@ -34,6 +34,31 @@ class JobDescription(Base):
     benefits = relationship("core.job_description_model.Benefit", back_populates="job_description",
                             cascade="all, delete-orphan")
 
+    def get_full_job_description(self) -> str:
+        # Összefűzzük a leírások szövegét
+        description_parts = []
+
+        if self.company_overview:
+            description_parts.append(self.company_overview)
+
+        if self.responsibilities:
+            responsibilities_text = " ".join([resp.description for resp in self.responsibilities])
+            description_parts.append(f"Responsibilities: {responsibilities_text}")
+
+        if self.qualifications:
+            qualifications_text = " ".join([qual.description for qual in self.qualifications])
+            description_parts.append(f"Qualifications: {qualifications_text}")
+
+        if self.skills:
+            skills_text = ", ".join([skill.skill_name for skill in self.skills])
+            description_parts.append(f"Required Skills: {skills_text}")
+
+        if self.benefits:
+            benefits_text = " ".join([benefit.description for benefit in self.benefits])
+            description_parts.append(f"Benefits: {benefits_text}")
+
+        # Visszatérünk az összefűzött szöveggel
+        return " | ".join(description_parts)
 
 class Responsibility(Base):
     __tablename__ = "responsibilities"

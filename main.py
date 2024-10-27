@@ -1,20 +1,21 @@
-from fastapi import FastAPI, Request, HTTPException, Form, Depends, File, UploadFile
+import json
+from typing import Optional
 
-from core.database import engine, Base  # Importáld az engine-t és a Base-t
+from fastapi import FastAPI, Request, HTTPException, Form, Depends, File, UploadFile
 from core.authentication import verify_password, get_user_by_username, create_access_token, decode_jwt
 from fastapi.staticfiles import StaticFiles
-from core.database import get_db
+from core.database import get_db, SessionLocal
 from sqlalchemy.orm import Session
 from fastapi.responses import RedirectResponse
 import logging
-import core.candidates_models
 from core.inserting_data import parse_job_description
 from core.job_description_model import JobDescription  # Importáld a JobDescription modellt
-from core.endpoint_logic import templates, handle_file_upload_job_description,handle_file_upload_cv generate_data
+from core.getjob import find_best_jobs_for_last_candidate
 from core.microphone import transcribe_audio
 from core.cache_logic import preprocess_and_cache
 import pdfplumber  # PDF feldolgozás
-
+from core.endpoint_logic import templates, handle_file_upload_job_description,handle_file_upload_cv, generate_data
+from core.cache_logic import initialize_industry_keywords_cache
 # Logger beállítása
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -71,8 +72,7 @@ async def upload_pdf_job_pdf(file: UploadFile = File(...)):
 @app.post("/upload-pdf-cv")
 async def upload_pdf_job_cv(file: UploadFile = File(...)):
     # Meghívjuk a handle_file_upload függvényt az endpoint_logic modulból
-    return handle_file_upload_cv_description(file)
-
+    return handle_file_upload_cv(file)
 @app.get("/get-items")
 async def get_items():
     # Meghívjuk a generate_data függvényt, és visszaküldjük az eredményt
@@ -81,7 +81,6 @@ async def get_items():
 @app.get("/test")
 async def login_get(request: Request):
     return templates.TemplateResponse("test.html", {"request": request})
-
 
 @app.post("/upload-audio")
 async def upload_audio(file: UploadFile = File(...)):
@@ -100,7 +99,10 @@ async def upload_audio(file: UploadFile = File(...)):
 
 @app.get("/results")
 async def results_page(request: Request, param1: Optional[str] = None, param2: Optional[str] = None):
-    data = generate_data(param1, param2)
+    db = SessionLocal()
+    initialize_industry_keywords_cache()
+    jobs = find_best_jobs_for_last_candidate(db)
+    data = generate_data(jobs, param1, param2)
     return templates.TemplateResponse("results.html", {
         "request": request,
         "name":param1,
@@ -109,7 +111,7 @@ async def results_page(request: Request, param1: Optional[str] = None, param2: O
         "best_item_id": data['best_item_id'],
         "best_item_explanation": data['best_item_explanation']
     })
-
+    db.close()
 # Végpont a form adatok és fájl fogadására
 @app.post("/submit-job")
 async def submit_job(
@@ -148,6 +150,6 @@ if __name__ == "__main__":
     import os
     from core.database import initialize_database
     initialize_database()
-    #preprocess_and_cache()
+    preprocess_and_cache()
     port = int(os.environ.get("PORT", 8000))  # Heroku-n PORT változó lesz elérhető
-    uvicorn.run("main:app", host="localhost", port=port, reload=True)
+    uvicorn.run("main:app", host="localhost", port=port, reload=False)

@@ -2,11 +2,11 @@ import numpy as np
 from typing import List, Dict
 from sqlalchemy.orm import Session
 from core.database import SessionLocal
-from candidates_models import Candidate
+from core.candidates_models import Candidate
 from core.job_description_model import JobDescription
-from candidates_models import CandidateJobScore, CandidateIndustryCache  # Az új adatbázis táblák importálása
-from INDUSTRY_KEYWORDS import INDUSTRY_KEYWORDS
-from cache_logic import get_cached_vector, preprocess_and_cache
+from core.candidates_models import CandidateJobScore, CandidateIndustryCache  # Az új adatbázis táblák importálása
+from core.INDUSTRY_KEYWORDS import INDUSTRY_KEYWORDS
+from core.cache_logic import get_cached_vector, preprocess_and_cache
 from concurrent.futures import ThreadPoolExecutor
 import openai
 import os
@@ -58,7 +58,6 @@ def match_industry_keywords(text: str, db: Session) -> List[str]:
 def calculate_industry_score_cached(candidate: Candidate, job_description: JobDescription, db: Session) -> float:
     candidate_industries = db.query(CandidateIndustryCache).filter_by(candidate_id=candidate.id).all()
     job_industries = [industry.industry_name for industry in job_description.industries if industry.industry_name]
-
     if not candidate_industries or not job_industries:
         print(f"No industry data available for comparison.")
         return 0.0
@@ -202,7 +201,25 @@ def rank_candidates_for_job(job_description: JobDescription, db: Session, top_n:
         }
         for candidate in ranked_candidates
     ]
+# Legjobb jelöltek keresése a legutolsó álláshoz
+def find_best_candidates_for_last_job(db: Session, top_n: int = 5) -> List[Dict]:
+    # Lekérdezzük az utolsó hozzáadott állást az adatbázisból
+    last_job = db.query(JobDescription).order_by(JobDescription.id.desc()).first()
 
+    if not last_job:
+        print("Nincs állás az adatbázisban.")
+        return []
+
+    print(f"\n=== Finding Best Candidates for Last Job: {last_job.job_title} ===")
+
+    # Legjobb jelöltek keresése az állás számára
+    best_candidates = rank_candidates_for_job(last_job, db, top_n=top_n)
+
+    print("\n--- Legjobb Jelöltek ---\n")
+    for candidate in best_candidates:
+        print(candidate)
+
+    return best_candidates
 
 # Fő folyamat indítása
 if __name__ == "__main__":
@@ -239,3 +256,4 @@ if __name__ == "__main__":
 
         finally:
             db.close()
+

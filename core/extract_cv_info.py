@@ -9,7 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 # Import your database session and models
 from core.database import SessionLocal
-from candidates_models import (
+from core.candidates_models import (
     create_candidate,
     add_education,
     add_experience,
@@ -125,9 +125,15 @@ def extract_text_from_pdf(pdf_path):
 
 def safe_year_conversion(year_str):
     try:
-        return int(year_str)
+        year = int(year_str)
+        if year < 1900 or year > datetime.now().year:  # Assuming reasonable year limits
+            return None
+        return year
     except (ValueError, TypeError):
         return None
+    except Exception as e:
+        return None
+
 
 
 # Function to save extracted data to the database
@@ -253,7 +259,7 @@ def save_extracted_data_to_db(extracted_info, file_name, db_session):
 # Function to process a single CV file
 def process_single_cv(file_name, directory_path):
     db_session = SessionLocal()
-    pdf_path = os.path.join(directory_path, file_name)
+    pdf_path = os.path.join(directory_path, file_name)  # Ellenőrizd, hogy a path itt helyes
 
     if file_name.endswith(".pdf"):
         print(f"\n=== Feldolgozás alatt: {file_name} ===\n")
@@ -275,9 +281,9 @@ def process_cvs_in_directory(directory_path, max_workers=10):
             executor.submit(process_single_cv, file_name, directory_path)
 
 
-# Example usage
-cv_directory = "../cv-s"  # Directory where your CV files are located
-process_cvs_in_directory(cv_directory)
+
 
 if __name__ == "__Main__":
-    pass
+    # Example usage
+    cv_directory = "../cv-s"  # Directory where your CV files are located
+    process_cvs_in_directory(cv_directory)
