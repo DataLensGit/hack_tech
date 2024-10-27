@@ -1,18 +1,40 @@
 from sqlalchemy.orm import Session
-from core.database import SessionLocal, engine
-from candidates_models import Candidate, Experience,CandidateIndustryCache
+from core.database import SessionLocal
+from core.candidates_models import Candidate, Experience, CandidateIndustryCache, TextVectorCache
 from core.job_description_model import JobDescription, Responsibility, PreferredSkill
-from candidates_models import TextVectorCache  # Az új adatbázis táblák importálása
-from typing import List, Dict, Optional
-
-from INDUSTRY_KEYWORDS import INDUSTRY_KEYWORDS
-import pickle  # A vektorok bináris tárolásához
+from typing import List
+from core.INDUSTRY_KEYWORDS import INDUSTRY_KEYWORDS
+import pickle
 from concurrent.futures import ThreadPoolExecutor
 import openai
 import os
 import numpy as np
+
 # Az OpenAI API kulcs inicializálása
 openai.api_key = os.getenv("OPENAI_API_KEY")
+
+
+def initialize_industry_keywords_cache():
+    """Pre-cache all industry keywords during system initialization"""
+    print("Initializing industry keywords cache...")
+
+    with SessionLocal() as session:
+        for industry, keywords in INDUSTRY_KEYWORDS.items():
+            for keyword in keywords:
+                try:
+                    # Check if keyword is already cached
+                    existing_cache = session.query(TextVectorCache).filter_by(text=keyword.lower().strip()).first()
+
+                    if not existing_cache:
+                        # Calculate and cache vector for uncached keyword
+                        vector = get_cached_vector(keyword.lower().strip())
+                        print(f"Cached vector for industry keyword: {keyword}")
+
+                except Exception as e:
+                    print(f"Error caching industry keyword '{keyword}': {e}")
+                    continue
+
+    print("Industry keywords cache initialization completed")
 def match_industry_keywords(text: str, db: Session) -> List[str]:
     matched_industries = []
     cleaned_text = text.lower().strip()
@@ -50,15 +72,14 @@ def match_industry_keywords(text: str, db: Session) -> List[str]:
 
     return matched_industries
 
+
 def preprocess_and_cache():
     initialize_industry_keywords_cache()
     def cache_text_vector(text: str, index: int, total: int):
-        # Minden szál külön adatbázis kapcsolatot használ
         with SessionLocal() as thread_db:
             try:
                 cached = thread_db.query(TextVectorCache).filter_by(text=text).first()
                 if not cached:
-                    # OpenAI API segítségével vektorizálás
                     response = openai.Embedding.create(
                         input=text,
                         model="text-embedding-ada-002"
@@ -78,47 +99,46 @@ def preprocess_and_cache():
                 print(f"Error during vector caching for text '{text}': {e}")
 
     def update_candidate_industry_cache(candidate: Candidate, experiences_text: str, db: Session):
-        # Iparági kulcsszavak alapján illeszkedő iparágak keresése
         matched_industries = match_industry_keywords(experiences_text, db)
 
         if not matched_industries:
             print(f"No industries matched for candidate {candidate.first_name} {candidate.last_name}.")
             return
 
-        for industry in matched_industries:
-            # Ellenőrizzük, hogy már nincs-e mentve az iparági adat
-            existing_cache = db.query(CandidateIndustryCache).filter_by(candidate_id=candidate.id,
-                                                                        industry_name=industry).first()
+        # Már meglévő iparági adatok egyszerre lekérdezése
+        existing_industries = db.query(CandidateIndustryCache.industry_name).filter_by(candidate_id=candidate.id).all()
+        existing_industry_names = {entry.industry_name for entry in existing_industries}
 
-            if not existing_cache:
-                # Új iparági adat mentése
-                candidate_industry = CandidateIndustryCache(
-                    candidate_id=candidate.id,
-                    industry_name=industry
-                )
-                db.add(candidate_industry)
+        # Új iparági adatok előkészítése
+        new_industries = [
+            CandidateIndustryCache(candidate_id=candidate.id, industry_name=industry)
+            for industry in matched_industries if industry not in existing_industry_names
+        ]
 
-        # Tranzakció véglegesítése
-        db.commit()
+        if new_industries:
+            # Bulk save egyszerre több objektum mentése
+            db.bulk_save_objects(new_industries)
+            db.commit()
+            print(f"Updated industries for candidate {candidate.first_name} {candidate.last_name}.")
 
-    # Összes szöveg gyűjtése, amit vektorizálni kell
     texts_to_cache = []
 
-    # Jelöltek tapasztalatainak gyűjtése
     with SessionLocal() as db:
         print("Collecting candidate experiences...")
         candidates = db.query(Candidate).all()
-        for candidate in candidates:
+
+        def process_candidate(candidate):
             experiences_text = " ".join(
-                [exp.description.lower() for exp in db.query(Experience).filter_by(candidate_id=candidate.id) if
-                 exp.description])
+                [exp.description.lower() for exp in db.query(Experience).filter_by(candidate_id=candidate.id) if exp.description]
+            )
             if experiences_text:
                 texts_to_cache.append(experiences_text)
-
-                # Iparági egyezések frissítése a jelölt tapasztalatai alapján
                 update_candidate_industry_cache(candidate, experiences_text, db)
 
-        # Állásleírások és a kapcsolódó szövegek gyűjtése
+        # Párhuzamos feldolgozás jelöltekkel
+        with ThreadPoolExecutor(max_workers=20) as executor:
+            executor.map(process_candidate, candidates)
+
         print("Collecting job descriptions...")
         job_descriptions = db.query(JobDescription).all()
         for job in job_descriptions:
@@ -135,7 +155,6 @@ def preprocess_and_cache():
                 if skill.skill_name:
                     texts_to_cache.append(skill.skill_name)
 
-        # Iparági kulcsszavak hozzáadása
         print("Collecting industry keywords...")
         for industry, keywords in INDUSTRY_KEYWORDS.items():
             texts_to_cache.extend(keywords)
@@ -143,7 +162,6 @@ def preprocess_and_cache():
     total_texts = len(texts_to_cache)
     print(f"Total texts to cache: {total_texts}")
 
-    # Párhuzamos cache-elés a szövegekhez
     print("Starting preprocessing and caching...")
     with ThreadPoolExecutor(max_workers=20) as executor:
         for index, text in enumerate(texts_to_cache):
@@ -153,18 +171,13 @@ def preprocess_and_cache():
 
 
 def get_cached_vector(text: str):
-    # Mindig új adatbázis kapcsolatot hozunk létre a kontextuskezelő használatával
     with SessionLocal() as session:
         try:
-            # Ellenőrizzük, hogy a vektor már a cache-ben van-e
             cached = session.query(TextVectorCache).filter_by(text=text).first()
             if cached:
-                # Vektor betöltése az adatbázisból
                 vector = pickle.loads(cached.vector)
-                #print(f"Vector found in cache for text: '{text}'")
                 return vector
             else:
-                # OpenAI API segítségével vektorizálás
                 print(f"Calculating and caching vector for text: '{text}'")
                 response = openai.Embedding.create(
                     input=text,
@@ -172,16 +185,14 @@ def get_cached_vector(text: str):
                 )
                 vector = response['data'][0]['embedding']
 
-                # Vektor mentése az adatbázisba
                 cached_vector = TextVectorCache(
                     text=text,
                     vector=pickle.dumps(vector)
                 )
                 session.add(cached_vector)
-                session.commit()  # Biztosítsuk, hogy a tranzakció befejeződik
-
+                session.commit()
                 return vector
         except Exception as e:
-            session.rollback()  # Ha bármilyen hiba történik, visszagörgetjük a tranzakciót
+            session.rollback()
             print(f"Error during vector caching for text '{text}': {e}")
             raise e
