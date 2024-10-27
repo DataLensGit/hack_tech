@@ -31,6 +31,9 @@
                 <div class="item {% if item.id == best_item_id %}best-item{% endif %}">
                     <!-- <img src="{{ item.image }}" alt="{{ item.name }}"> -->
                     <h3>{{ item.name }}</h3>
+                    {% if item.id == best_item_id %}
+                        <p><strong>{{ best_item_explanation }}</strong></p>
+                    {% endif %}
                     <p>{{ item.description }}</p>
                     <div class="rating" data-value="{{ item.rating }}">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" fill="none">
@@ -38,9 +41,6 @@
                         </svg>
                         <span data-value="{{ item.rating }}">0</span>
                     </div>
-                    {% if item.id == best_item_id %}
-                        <p><strong>{{ best_item_explanation }}</strong></p>
-                    {% endif %}
                 </div>
             {% endfor %}
         </div>

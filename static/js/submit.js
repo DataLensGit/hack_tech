@@ -32,6 +32,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Submit esemény figyelése
     submitButton.addEventListener('click', (event) => {
+        let loader = document.querySelector('.loader');
+        loader.style.display = 'flex';
+            setTimeout(() => {
+                loader.style.opacity = '1';
+            }, 20);
         event.preventDefault(); // Megakadályozzuk az alapértelmezett submit viselkedést
 
         const formData = new FormData();
