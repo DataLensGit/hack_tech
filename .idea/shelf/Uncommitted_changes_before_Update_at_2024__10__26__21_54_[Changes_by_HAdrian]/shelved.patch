@@ -1,0 +1,195 @@
+Index: core/matching.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import numpy as np\r\nfrom typing import List, Dict\r\nfrom sqlalchemy.orm import Session\r\nfrom core.database import SessionLocal\r\nfrom candidates_models import Candidate\r\nfrom core.job_description_model import JobDescription\r\nfrom candidates_models import CandidateJobScore, CandidateIndustryCache  # Az új adatbázis táblák importálása\r\nfrom INDUSTRY_KEYWORDS import INDUSTRY_KEYWORDS\r\nfrom cache_logic import get_cached_vector, preprocess_and_cache\r\nfrom concurrent.futures import ThreadPoolExecutor\r\nimport openai\r\nimport os\r\n# Constants for weightage\r\nINDUSTRY_KNOWLEDGE_WEIGHT = 0.10\r\nTECHNICAL_SKILLS_WEIGHT = 0.30\r\nJOB_MATCHING_WEIGHT = 0.60\r\nopenai.api_key = os.getenv(\"OPENAI_API_KEY\")\r\n\r\n\r\ndef match_industry_keywords(text: str, db: Session) -> List[str]:\r\n    matched_industries = []\r\n    cleaned_text = text.lower().strip()\r\n\r\n    if not cleaned_text:\r\n        return matched_industries\r\n\r\n    # Szöveg vektor lekérése cache-ből vagy vektorizáció\r\n    text_vector = get_cached_vector(cleaned_text)\r\n\r\n    if np.linalg.norm(text_vector) == 0:\r\n        print(\"The provided text does not have valid vectors.\")\r\n        return matched_industries\r\n\r\n    for industry, keywords in INDUSTRY_KEYWORDS.items():\r\n        similarity_scores = []\r\n\r\n        for keyword in keywords:\r\n            keyword_clean = keyword.lower().strip()\r\n            # Kulcsszó vektor lekérése\r\n            keyword_vector = get_cached_vector(keyword_clean)\r\n\r\n            if np.linalg.norm(keyword_vector) > 0:\r\n                # Koszinusz hasonlóság számítása\r\n                similarity = np.dot(text_vector, keyword_vector) / (np.linalg.norm(text_vector) * np.linalg.norm(keyword_vector))\r\n                similarity_scores.append(similarity)\r\n\r\n        if similarity_scores:\r\n            # Átlagos hasonlóság egy iparág számára\r\n            average_similarity = sum(similarity_scores) / len(similarity_scores)\r\n\r\n            # Szigorúbb küszöbérték\r\n            if average_similarity > 0.45:\r\n                matched_industries.append(industry)\r\n\r\n    return matched_industries\r\n\r\n# Iparági Pontszám Számítása Cache Használatával\r\ndef calculate_industry_score_cached(candidate: Candidate, job_description: JobDescription, db: Session) -> float:\r\n    candidate_industries = db.query(CandidateIndustryCache).filter_by(candidate_id=candidate.id).all()\r\n    job_industries = [industry.industry_name for industry in job_description.industries if industry.industry_name]\r\n\r\n    if not candidate_industries or not job_industries:\r\n        print(f\"No industry data available for comparison.\")\r\n        return 0.0\r\n\r\n    matching_fields = set([ci.industry_name for ci in candidate_industries]).intersection(set(job_industries))\r\n    total_fields = len(job_industries)\r\n\r\n    match_percentage = (len(matching_fields) / total_fields) * 100\r\n    #print(f\"Matching Fields (Cached): {matching_fields}\")\r\n    #print(f\"Match Percentage (Cached): {match_percentage}%\")\r\n\r\n    return match_percentage\r\n\r\n# Technikai Skillek Pontszám Számítása Cache Használatával\r\ndef calculate_technical_skills_score_cached(candidate: Candidate, job_description: JobDescription,\r\n                                            threshold: float = 0.6, db: Session = None) -> float:\r\n\r\n    required_skills = [skill.skill_name.lower() for skill in job_description.skills if skill.skill_name]\r\n    candidate_skills = [skill.skill_name.lower() for skill in candidate.skills if skill.skill_name]\r\n\r\n    if not required_skills:\r\n        print(\"No skills required in the job description.\")\r\n        return 0.0\r\n\r\n    if not candidate_skills:\r\n        print(f\"No skills found for Candidate: {candidate.first_name} {candidate.last_name}\")\r\n        return 0.0\r\n\r\n    total_score = 0\r\n\r\n    for req_skill in required_skills:\r\n        req_vector = get_cached_vector(req_skill)\r\n        if np.linalg.norm(req_vector) == 0:\r\n            continue\r\n        max_similarity = 0\r\n        for cand_skill in candidate_skills:\r\n            cand_vector = get_cached_vector(cand_skill)\r\n            if np.linalg.norm(cand_vector) == 0:\r\n                continue\r\n            similarity = np.dot(req_vector, cand_vector) / (np.linalg.norm(req_vector) * np.linalg.norm(cand_vector))\r\n            if similarity > max_similarity:\r\n                max_similarity = similarity\r\n\r\n        if max_similarity >= threshold:\r\n            total_score += max_similarity\r\n\r\n    technical_score = (total_score / len(required_skills)) * 100 if required_skills else 0.0\r\n    #print(f\"Technical Skills Score (Cached): {technical_score}\")\r\n\r\n    return technical_score\r\n# Job Description Matching Score számítása\r\ndef calculate_job_matching_score(candidate: Candidate, job_description: JobDescription, db: Session) -> float:\r\n    candidate_experience_text = \" \".join([exp.description.lower() for exp in candidate.experiences if exp.description]).strip()\r\n    job_requirements_text = \" \".join([resp.description.lower() for resp in job_description.responsibilities if resp.description]).strip()\r\n\r\n    if not candidate_experience_text:\r\n        print(\"No candidate experience data available.\")\r\n        return 0.0\r\n\r\n    if not job_requirements_text:\r\n        print(\"No job requirements data available.\")\r\n        return 0.0\r\n\r\n    # Szöveg vektorok lekérése\r\n    candidate_vector = get_cached_vector(candidate_experience_text)\r\n    job_vector = get_cached_vector(job_requirements_text)\r\n\r\n    if np.linalg.norm(candidate_vector) == 0 or np.linalg.norm(job_vector) == 0:\r\n        print(\"No valid vectors for similarity calculation.\")\r\n        return 0.0\r\n\r\n    # Koszinusz hasonlóság számítása\r\n    similarity = np.dot(candidate_vector, job_vector) / (np.linalg.norm(candidate_vector) * np.linalg.norm(job_vector))\r\n    job_matching_score = similarity * 100\r\n    #print(f\"Job Matching Score: {job_matching_score}\")\r\n    return job_matching_score\r\n\r\n# Pontszámok kiszámítása és mentése\r\ndef calculate_and_save_final_score(candidate: Candidate, job_description: JobDescription, db: Session):\r\n    # Pontszámítás\r\n    try:\r\n        industry_score = float(calculate_industry_score_cached(candidate, job_description, db))\r\n        print(f\"Industry Score for Candidate {candidate.first_name} {candidate.last_name}: {industry_score}\")\r\n\r\n        technical_score = float(calculate_technical_skills_score_cached(candidate, job_description, db=db))\r\n        print(f\"Technical Skills Score for Candidate {candidate.first_name} {candidate.last_name}: {technical_score}\")\r\n\r\n        job_matching_score = float(calculate_job_matching_score(candidate, job_description, db))\r\n        print(f\"Job Matching Score for Candidate {candidate.first_name} {candidate.last_name}: {job_matching_score}\")\r\n    except Exception as e:\r\n        print(f\"Error during score calculation for candidate {candidate.first_name} {candidate.last_name}: {e}\")\r\n        return 0.0\r\n\r\n    # Ellenőrizzük, hogy bármelyik pontszám nullával tért-e vissza\r\n    if industry_score == 0 and technical_score == 0 and job_matching_score == 0:\r\n        print(f\"All scores are zero for candidate {candidate.first_name} {candidate.last_name}. Skipping...\")\r\n        return 0.0\r\n\r\n    final_score = float(\r\n        (industry_score * INDUSTRY_KNOWLEDGE_WEIGHT) +\r\n        (technical_score * TECHNICAL_SKILLS_WEIGHT) +\r\n        (job_matching_score * JOB_MATCHING_WEIGHT)\r\n    )\r\n\r\n    print(f\"Final Score for Candidate {candidate.first_name} {candidate.last_name}: {final_score}\")\r\n\r\n    # Adatbázis mentésének eltávolítása, csak visszatérünk a számított pontszámmal\r\n    return final_score\r\n# Jelöltek rangsorolása egy adott állásra\r\ndef rank_candidates_for_job(job_description: JobDescription, db: Session, top_n: int = 5) -> List[Dict]:\r\n    candidates = db.query(Candidate).all()\r\n    scores = []\r\n\r\n    print(f\"\\n=== Ranking Candidates for Job: {job_description.job_title} ===\")\r\n\r\n    def get_score_for_candidate(candidate):\r\n        # Minden szálnak új adatbázis kapcsolatot hozunk létre\r\n        with SessionLocal() as thread_db:\r\n            existing_score = thread_db.query(CandidateJobScore).filter_by(candidate_id=candidate.id,\r\n                                                                          job_id=job_description.id).first()\r\n            if existing_score:\r\n                score = existing_score.final_score\r\n            else:\r\n                score = calculate_and_save_final_score(candidate, job_description, thread_db)\r\n            return {\r\n                \"candidate\": candidate,\r\n                \"score\": score\r\n            }\r\n\r\n    with ThreadPoolExecutor(max_workers=20) as executor:\r\n        results = list(executor.map(get_score_for_candidate, candidates))\r\n\r\n    ranked_candidates = sorted(results, key=lambda x: x[\"score\"], reverse=True)[:top_n]\r\n\r\n    return [\r\n        {\r\n            \"candidate_id\": candidate[\"candidate\"].id,\r\n            \"first_name\": candidate[\"candidate\"].first_name,\r\n            \"last_name\": candidate[\"candidate\"].last_name,\r\n            \"score\": candidate[\"score\"]\r\n        }\r\n        for candidate in ranked_candidates\r\n    ]\r\n\r\n\r\n# Fő folyamat indítása\r\nif __name__ == \"__main__\":\r\n    preprocess_and_cache()  # Ne adj át db-t, mivel a függvény nem vár paramétert\r\n\r\n    while True:\r\n        db = SessionLocal()\r\n\r\n        try:\r\n            # Felhasználótól kérünk egy állásazonosítót\r\n            job_id = input(\"Add meg az állás azonosítóját (vagy 'exit' a kilépéshez): \")\r\n\r\n            # Kilépési feltétel\r\n            if job_id.lower() == 'exit':\r\n                break\r\n\r\n            try:\r\n                job_id = int(job_id)\r\n            except ValueError:\r\n                print(\"Érvénytelen állásazonosító. Próbáld újra.\")\r\n                continue\r\n\r\n            # Keresünk egy állást a megadott azonosítóval\r\n            job_description = db.query(JobDescription).filter_by(id=job_id).first()\r\n\r\n            if job_description:\r\n                print(f\"\\nÁllás leírás: {job_description}\")\r\n                ranked_candidates = rank_candidates_for_job(job_description, db)\r\n\r\n                print(\"\\n--- Rangsort Jelöltek ---\\n\")\r\n                for candidate in ranked_candidates:\r\n                    print(candidate)\r\n            else:\r\n                print(f\"Nincs találat az {job_id} azonosítójú álláshoz.\")\r\n\r\n        finally:\r\n            db.close()
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/core/matching.py b/core/matching.py
+--- a/core/matching.py	(revision 67032de95fc7bc3746a36b11a2118994bd570f14)
++++ b/core/matching.py	(date 1729972444547)
+@@ -58,7 +58,8 @@
+ def calculate_industry_score_cached(candidate: Candidate, job_description: JobDescription, db: Session) -> float:
+     candidate_industries = db.query(CandidateIndustryCache).filter_by(candidate_id=candidate.id).all()
+     job_industries = [industry.industry_name for industry in job_description.industries if industry.industry_name]
+-
++    print(f"Ez a köcsög:{candidate_industries}")
++    print(f"Ez a munkáltató:{job_industries}")
+     if not candidate_industries or not job_industries:
+         print(f"No industry data available for comparison.")
+         return 0.0
+Index: core/cache_logic.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from sqlalchemy.orm import Session\r\nfrom core.database import SessionLocal, engine\r\nfrom candidates_models import Candidate, Experience,CandidateIndustryCache\r\nfrom core.job_description_model import JobDescription, Responsibility, PreferredSkill\r\nfrom candidates_models import TextVectorCache  # Az új adatbázis táblák importálása\r\nfrom typing import List, Dict, Optional\r\n\r\nfrom INDUSTRY_KEYWORDS import INDUSTRY_KEYWORDS\r\nimport pickle  # A vektorok bináris tárolásához\r\nfrom concurrent.futures import ThreadPoolExecutor\r\nimport openai\r\nimport os\r\nimport numpy as np\r\n# Az OpenAI API kulcs inicializálása\r\nopenai.api_key = os.getenv(\"OPENAI_API_KEY\")\r\ndef match_industry_keywords(text: str, db: Session) -> List[str]:\r\n    matched_industries = []\r\n    cleaned_text = text.lower().strip()\r\n\r\n    if not cleaned_text:\r\n        return matched_industries\r\n\r\n    # Szöveg vektor lekérése cache-ből vagy vektorizáció\r\n    text_vector = get_cached_vector(cleaned_text)\r\n\r\n    if np.linalg.norm(text_vector) == 0:\r\n        print(\"The provided text does not have valid vectors.\")\r\n        return matched_industries\r\n\r\n    for industry, keywords in INDUSTRY_KEYWORDS.items():\r\n        similarity_scores = []\r\n\r\n        for keyword in keywords:\r\n            keyword_clean = keyword.lower().strip()\r\n            # Kulcsszó vektor lekérése\r\n            keyword_vector = get_cached_vector(keyword_clean)\r\n\r\n            if np.linalg.norm(keyword_vector) > 0:\r\n                # Koszinusz hasonlóság számítása\r\n                similarity = np.dot(text_vector, keyword_vector) / (np.linalg.norm(text_vector) * np.linalg.norm(keyword_vector))\r\n                similarity_scores.append(similarity)\r\n\r\n        if similarity_scores:\r\n            # Átlagos hasonlóság egy iparág számára\r\n            average_similarity = sum(similarity_scores) / len(similarity_scores)\r\n\r\n            # Szigorúbb küszöbérték\r\n            if average_similarity > 0.45:\r\n                matched_industries.append(industry)\r\n\r\n    return matched_industries\r\n\r\ndef preprocess_and_cache():\r\n    def cache_text_vector(text: str, index: int, total: int):\r\n        # Minden szál külön adatbázis kapcsolatot használ\r\n        with SessionLocal() as thread_db:\r\n            try:\r\n                cached = thread_db.query(TextVectorCache).filter_by(text=text).first()\r\n                if not cached:\r\n                    # OpenAI API segítségével vektorizálás\r\n                    response = openai.Embedding.create(\r\n                        input=text,\r\n                        model=\"text-embedding-ada-002\"\r\n                    )\r\n                    vector = response['data'][0]['embedding']\r\n\r\n                    # Mentés a cache-be\r\n                    cached_vector = TextVectorCache(\r\n                        text=text,\r\n                        vector=pickle.dumps(vector)\r\n                    )\r\n                    thread_db.add(cached_vector)\r\n                    thread_db.commit()\r\n                    print(f\"Vector cached for text [{index}/{total}]: '{text[:30]}...'\")\r\n            except Exception as e:\r\n                thread_db.rollback()\r\n                print(f\"Error during vector caching for text '{text}': {e}\")\r\n\r\n    def update_candidate_industry_cache(candidate: Candidate, experiences_text: str, db: Session):\r\n        # Iparági kulcsszavak alapján illeszkedő iparágak keresése\r\n        matched_industries = match_industry_keywords(experiences_text, db)\r\n\r\n        if not matched_industries:\r\n            print(f\"No industries matched for candidate {candidate.first_name} {candidate.last_name}.\")\r\n            return\r\n\r\n        for industry in matched_industries:\r\n            # Ellenőrizzük, hogy már nincs-e mentve az iparági adat\r\n            existing_cache = db.query(CandidateIndustryCache).filter_by(candidate_id=candidate.id,\r\n                                                                        industry_name=industry).first()\r\n\r\n            if not existing_cache:\r\n                # Új iparági adat mentése\r\n                candidate_industry = CandidateIndustryCache(\r\n                    candidate_id=candidate.id,\r\n                    industry_name=industry\r\n                )\r\n                db.add(candidate_industry)\r\n\r\n        # Tranzakció véglegesítése\r\n        db.commit()\r\n\r\n    # Összes szöveg gyűjtése, amit vektorizálni kell\r\n    texts_to_cache = []\r\n\r\n    # Jelöltek tapasztalatainak gyűjtése\r\n    with SessionLocal() as db:\r\n        print(\"Collecting candidate experiences...\")\r\n        candidates = db.query(Candidate).all()\r\n        for candidate in candidates:\r\n            experiences_text = \" \".join(\r\n                [exp.description.lower() for exp in db.query(Experience).filter_by(candidate_id=candidate.id) if\r\n                 exp.description])\r\n            if experiences_text:\r\n                texts_to_cache.append(experiences_text)\r\n\r\n                # Iparági egyezések frissítése a jelölt tapasztalatai alapján\r\n                update_candidate_industry_cache(candidate, experiences_text, db)\r\n\r\n        # Állásleírások és a kapcsolódó szövegek gyűjtése\r\n        print(\"Collecting job descriptions...\")\r\n        job_descriptions = db.query(JobDescription).all()\r\n        for job in job_descriptions:\r\n            if job.job_title:\r\n                texts_to_cache.append(job.job_title)\r\n\r\n            responsibilities = db.query(Responsibility).filter_by(job_description_id=job.id).all()\r\n            for resp in responsibilities:\r\n                if resp.description:\r\n                    texts_to_cache.append(resp.description)\r\n\r\n            skills = db.query(PreferredSkill).filter_by(job_description_id=job.id).all()\r\n            for skill in skills:\r\n                if skill.skill_name:\r\n                    texts_to_cache.append(skill.skill_name)\r\n\r\n        # Iparági kulcsszavak hozzáadása\r\n        print(\"Collecting industry keywords...\")\r\n        for industry, keywords in INDUSTRY_KEYWORDS.items():\r\n            texts_to_cache.extend(keywords)\r\n\r\n    total_texts = len(texts_to_cache)\r\n    print(f\"Total texts to cache: {total_texts}\")\r\n\r\n    # Párhuzamos cache-elés a szövegekhez\r\n    print(\"Starting preprocessing and caching...\")\r\n    with ThreadPoolExecutor(max_workers=20) as executor:\r\n        for index, text in enumerate(texts_to_cache):\r\n            executor.submit(cache_text_vector, text, index + 1, total_texts)\r\n\r\n    print(\"Preprocessing and caching completed.\")\r\n\r\n\r\ndef get_cached_vector(text: str):\r\n    # Mindig új adatbázis kapcsolatot hozunk létre a kontextuskezelő használatával\r\n    with SessionLocal() as session:\r\n        try:\r\n            # Ellenőrizzük, hogy a vektor már a cache-ben van-e\r\n            cached = session.query(TextVectorCache).filter_by(text=text).first()\r\n            if cached:\r\n                # Vektor betöltése az adatbázisból\r\n                vector = pickle.loads(cached.vector)\r\n                #print(f\"Vector found in cache for text: '{text}'\")\r\n                return vector\r\n            else:\r\n                # OpenAI API segítségével vektorizálás\r\n                print(f\"Calculating and caching vector for text: '{text}'\")\r\n                response = openai.Embedding.create(\r\n                    input=text,\r\n                    model=\"text-embedding-ada-002\"\r\n                )\r\n                vector = response['data'][0]['embedding']\r\n\r\n                # Vektor mentése az adatbázisba\r\n                cached_vector = TextVectorCache(\r\n                    text=text,\r\n                    vector=pickle.dumps(vector)\r\n                )\r\n                session.add(cached_vector)\r\n                session.commit()  # Biztosítsuk, hogy a tranzakció befejeződik\r\n\r\n                return vector\r\n        except Exception as e:\r\n            session.rollback()  # Ha bármilyen hiba történik, visszagörgetjük a tranzakciót\r\n            print(f\"Error during vector caching for text '{text}': {e}\")\r\n            raise e\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/core/cache_logic.py b/core/cache_logic.py
+--- a/core/cache_logic.py	(revision fec08b6942d5fb936e5e821bc9bef5b91bb01f65)
++++ b/core/cache_logic.py	(date 1729971835208)
+@@ -1,18 +1,19 @@
+ from sqlalchemy.orm import Session
+-from core.database import SessionLocal, engine
+-from candidates_models import Candidate, Experience,CandidateIndustryCache
++from core.database import SessionLocal
++from candidates_models import Candidate, Experience, CandidateIndustryCache
+ from core.job_description_model import JobDescription, Responsibility, PreferredSkill
+-from candidates_models import TextVectorCache  # Az új adatbázis táblák importálása
+-from typing import List, Dict, Optional
+-
++from candidates_models import TextVectorCache
++from typing import List
+ from INDUSTRY_KEYWORDS import INDUSTRY_KEYWORDS
+-import pickle  # A vektorok bináris tárolásához
++import pickle
+ from concurrent.futures import ThreadPoolExecutor
+ import openai
+ import os
+ import numpy as np
++
+ # Az OpenAI API kulcs inicializálása
+ openai.api_key = os.getenv("OPENAI_API_KEY")
++
+ def match_industry_keywords(text: str, db: Session) -> List[str]:
+     matched_industries = []
+     cleaned_text = text.lower().strip()
+@@ -50,14 +51,13 @@
+ 
+     return matched_industries
+ 
++
+ def preprocess_and_cache():
+     def cache_text_vector(text: str, index: int, total: int):
+-        # Minden szál külön adatbázis kapcsolatot használ
+         with SessionLocal() as thread_db:
+             try:
+                 cached = thread_db.query(TextVectorCache).filter_by(text=text).first()
+                 if not cached:
+-                    # OpenAI API segítségével vektorizálás
+                     response = openai.Embedding.create(
+                         input=text,
+                         model="text-embedding-ada-002"
+@@ -77,47 +77,46 @@
+                 print(f"Error during vector caching for text '{text}': {e}")
+ 
+     def update_candidate_industry_cache(candidate: Candidate, experiences_text: str, db: Session):
+-        # Iparági kulcsszavak alapján illeszkedő iparágak keresése
+         matched_industries = match_industry_keywords(experiences_text, db)
+ 
+         if not matched_industries:
+             print(f"No industries matched for candidate {candidate.first_name} {candidate.last_name}.")
+             return
+ 
+-        for industry in matched_industries:
+-            # Ellenőrizzük, hogy már nincs-e mentve az iparági adat
+-            existing_cache = db.query(CandidateIndustryCache).filter_by(candidate_id=candidate.id,
+-                                                                        industry_name=industry).first()
++        # Már meglévő iparági adatok egyszerre lekérdezése
++        existing_industries = db.query(CandidateIndustryCache.industry_name).filter_by(candidate_id=candidate.id).all()
++        existing_industry_names = {entry.industry_name for entry in existing_industries}
+ 
+-            if not existing_cache:
+-                # Új iparági adat mentése
+-                candidate_industry = CandidateIndustryCache(
+-                    candidate_id=candidate.id,
+-                    industry_name=industry
+-                )
+-                db.add(candidate_industry)
++        # Új iparági adatok előkészítése
++        new_industries = [
++            CandidateIndustryCache(candidate_id=candidate.id, industry_name=industry)
++            for industry in matched_industries if industry not in existing_industry_names
++        ]
+ 
+-        # Tranzakció véglegesítése
+-        db.commit()
++        if new_industries:
++            # Bulk save egyszerre több objektum mentése
++            db.bulk_save_objects(new_industries)
++            db.commit()
++            print(f"Updated industries for candidate {candidate.first_name} {candidate.last_name}.")
+ 
+-    # Összes szöveg gyűjtése, amit vektorizálni kell
+     texts_to_cache = []
+ 
+-    # Jelöltek tapasztalatainak gyűjtése
+     with SessionLocal() as db:
+         print("Collecting candidate experiences...")
+         candidates = db.query(Candidate).all()
+-        for candidate in candidates:
++
++        def process_candidate(candidate):
+             experiences_text = " ".join(
+-                [exp.description.lower() for exp in db.query(Experience).filter_by(candidate_id=candidate.id) if
+-                 exp.description])
++                [exp.description.lower() for exp in db.query(Experience).filter_by(candidate_id=candidate.id) if exp.description]
++            )
+             if experiences_text:
+                 texts_to_cache.append(experiences_text)
+-
+-                # Iparági egyezések frissítése a jelölt tapasztalatai alapján
+                 update_candidate_industry_cache(candidate, experiences_text, db)
+ 
+-        # Állásleírások és a kapcsolódó szövegek gyűjtése
++        # Párhuzamos feldolgozás jelöltekkel
++        with ThreadPoolExecutor(max_workers=20) as executor:
++            executor.map(process_candidate, candidates)
++
+         print("Collecting job descriptions...")
+         job_descriptions = db.query(JobDescription).all()
+         for job in job_descriptions:
+@@ -134,7 +133,6 @@
+                 if skill.skill_name:
+                     texts_to_cache.append(skill.skill_name)
+ 
+-        # Iparági kulcsszavak hozzáadása
+         print("Collecting industry keywords...")
+         for industry, keywords in INDUSTRY_KEYWORDS.items():
+             texts_to_cache.extend(keywords)
+@@ -142,7 +140,6 @@
+     total_texts = len(texts_to_cache)
+     print(f"Total texts to cache: {total_texts}")
+ 
+-    # Párhuzamos cache-elés a szövegekhez
+     print("Starting preprocessing and caching...")
+     with ThreadPoolExecutor(max_workers=20) as executor:
+         for index, text in enumerate(texts_to_cache):
+@@ -152,18 +149,13 @@
+ 
+ 
+ def get_cached_vector(text: str):
+-    # Mindig új adatbázis kapcsolatot hozunk létre a kontextuskezelő használatával
+     with SessionLocal() as session:
+         try:
+-            # Ellenőrizzük, hogy a vektor már a cache-ben van-e
+             cached = session.query(TextVectorCache).filter_by(text=text).first()
+             if cached:
+-                # Vektor betöltése az adatbázisból
+                 vector = pickle.loads(cached.vector)
+-                #print(f"Vector found in cache for text: '{text}'")
+                 return vector
+             else:
+-                # OpenAI API segítségével vektorizálás
+                 print(f"Calculating and caching vector for text: '{text}'")
+                 response = openai.Embedding.create(
+                     input=text,
+@@ -171,16 +163,14 @@
+                 )
+                 vector = response['data'][0]['embedding']
+ 
+-                # Vektor mentése az adatbázisba
+                 cached_vector = TextVectorCache(
+                     text=text,
+                     vector=pickle.dumps(vector)
+                 )
+                 session.add(cached_vector)
+-                session.commit()  # Biztosítsuk, hogy a tranzakció befejeződik
+-
++                session.commit()
+                 return vector
+         except Exception as e:
+-            session.rollback()  # Ha bármilyen hiba történik, visszagörgetjük a tranzakciót
++            session.rollback()
+             print(f"Error during vector caching for text '{text}': {e}")
+             raise e

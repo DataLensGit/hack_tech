@@ -4,16 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d44df78d-462c-4bb5-9538-7dbdf75d44af" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/core/getjob.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/endpoint_logic.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/endpoint_logic.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/extract_cv_info.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/extract_cv_info.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/job_description_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/job_description_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/matching.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/matching.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/events.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/events.js" afterDir="false" />
-    </list>
+    <list default="true" id="d44df78d-462c-4bb5-9538-7dbdf75d44af" name="Changes" comment="" />
     <list id="a64c9041-028c-45e5-86ec-2205b7d7fb8e" name="Changes by HAdrian" comment="">
       <change beforePath="$PROJECT_DIR$/core/cache_logic.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/cache_logic.py" afterDir="false" />
     </list>
@@ -320,7 +311,15 @@
       <option name="project" value="LOCAL" />
       <updated>1729980203816</updated>
     </task>
-    <option name="localTasksCounter" value="24" />
+    <task id="LOCAL-00024" summary="last rush">
+      <option name="closed" value="true" />
+      <created>1730013683167</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1730013683167</updated>
+    </task>
+    <option name="localTasksCounter" value="25" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -348,6 +347,7 @@
     <MESSAGE value="jólettamatch" />
     <MESSAGE value="ezthasználdKristóf" />
     <MESSAGE value="qwertzuiop" />
-    <option name="LAST_COMMIT_MESSAGE" value="qwertzuiop" />
+    <MESSAGE value="last rush" />
+    <option name="LAST_COMMIT_MESSAGE" value="last rush" />
   </component>
 </project>
