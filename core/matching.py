@@ -10,6 +10,9 @@ from core.cache_logic import get_cached_vector, preprocess_and_cache
 from concurrent.futures import ThreadPoolExecutor
 import openai
 import os
+from typing import Optional
+from core.job_description_model import IndustryField
+from fastapi import HTTPException, UploadFile, Form
 # Constants for weightage
 INDUSTRY_KNOWLEDGE_WEIGHT = 0.10
 TECHNICAL_SKILLS_WEIGHT = 0.30
@@ -202,6 +205,45 @@ def rank_candidates_for_job(job_description: JobDescription, db: Session, top_n:
         for candidate in ranked_candidates
     ]
 # Legjobb jelöltek keresése a legutolsó álláshoz
+
+def process_form_data(industry: str, job_description: Optional[str], keywords: Optional[List[str]], cv_filename: Optional[str], db: Session) -> JobDescription:
+    try:
+        # Új JobDescription létrehozása
+        new_job = JobDescription(
+            job_title="Custom Job",  # Ezt a címet igény szerint módosíthatod
+            company_overview=job_description if job_description else ""
+        )
+        db.add(new_job)
+        db.commit()
+        db.refresh(new_job)
+
+        # Iparágak hozzáadása
+        if industry:
+            new_industry = IndustryField(
+                industry_name=industry,
+                job_description_id=new_job.id
+            )
+            db.add(new_industry)
+
+        # Kulcsszavak feldolgozása
+        if keywords:
+            for keyword in keywords:
+                # Itt a kulcsszavak alapján különböző mezőket is beállíthatsz, ha szükséges
+                print(f"Keyword: {keyword}")
+
+        # Fájl feldolgozása (ha van)
+        if cv_filename:
+            print(f"CV fájl neve: {cv_filename}")
+            # A fájl nevét eltárolhatod az adatbázisban, ha szükséges
+
+        # Mentés az adatbázisban
+        db.commit()
+        return new_job
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Hiba történt az adatok feldolgozása során: {str(e)}")
+
 def find_best_candidates_for_last_job(db: Session, top_n: int = 5) -> List[Dict]:
     # Lekérdezzük az utolsó hozzáadott állást az adatbázisból
     last_job = db.query(JobDescription).order_by(JobDescription.id.desc()).first()

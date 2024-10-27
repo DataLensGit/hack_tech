@@ -102,15 +102,14 @@ def generate_suggestion(cv_text: str, job_description: str) -> str:
         str: A ChatGPT által generált rövid összefoglaló.
     """
     prompt = f"""
-    Az alábbiakban található egy állás leírás és egy jelölt életrajza. Írj 2-3 mondatot, amelyben összefoglalod, hogy a jelölt miért lenne jó választás erre az állásra.
-
-    Állás Leírás:
+    Here is a job description and a candidate's resume below. Write 2-3 sentences summarizing why the candidate would be a good fit for this position.
+    Job description:
     {job_description}
 
-    Jelölt Életrajz:
+    CV:
     {cv_text}
 
-    Rövid javaslat (2-3 mondatban):
+    Recommendation:
     """
 
     try:

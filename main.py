@@ -16,6 +16,9 @@ from core.cache_logic import preprocess_and_cache
 import pdfplumber  # PDF feldolgozás
 from core.endpoint_logic import templates, handle_file_upload_job_description,handle_file_upload_cv, generate_data
 from core.cache_logic import initialize_industry_keywords_cache
+from core.matching import process_form_data, find_best_candidates_for_last_job
+from core.endpoint_logic import generate_candidate_data
+from core.extract_job_info import extract_text_from_pdf, extract_job_info, save_job_description_to_db
 # Logger beállítása
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -116,18 +119,79 @@ async def results_page(request: Request, param1: Optional[str] = None, param2: O
 @app.get("/candidates")
 async def results_page(request: Request, param1: Optional[str] = None, param2: Optional[str] = None):
     db = SessionLocal()
-    initialize_industry_keywords_cache()
-    jobs = find_best_jobs_for_last_candidate(db)
-    data = generate_data(jobs, param1, param2)
+    try:
+        # Iparági kulcsszavak inicializálása (ha szükséges)
+        initialize_industry_keywords_cache()
+
+        # Legjobb jelöltek lekérdezése a legutolsó álláshoz
+        candidates = find_best_candidates_for_last_job(db)
+        data = generate_candidate_data(candidates, param1, param2)
+
+        return templates.TemplateResponse("results.html", {
+            "request": request,
+            "name": param1,
+            "pos": param2,
+            "items": data['items'],
+            "best_item_id": data['best_item_id'],
+            "best_item_explanation": data['best_item_explanation']
+        })
+    finally:
+        db.close()
+
+@app.get("/dummy_candidates")
+async def results_page(request: Request, param1: Optional[str] = None, param2: Optional[str] = None):
+    dummy_data = {
+        "items": [
+            {
+                "id": 0,
+                "image": "/static/img/sample_image_0.jpg",
+                "name": "John Doe",
+                "description": "Mihai Vlasceanu azért lenne jó választás az adott állásra, mert magas pontszáma alapján kiemelkedő tudású és tapasztalt szakembernek tekinthető. A pontszám alapján valószínűsíthető, hogy rendelkezik a szükséges készségekkel és ismeretekkel ahhoz, hogy hatékonyan és eredményesen ellássa az állásban foglalt feladatokat. Ezen kívül a magas pontszám azt is jelzi, hogy elkötelezett és ambiciózus személyiség, aki nagy valószínűséggel szorgalmasan és precízen végezné el a rábízott feladatokat.",
+                "rating": 9.3
+            },
+            {
+                "id": 1,
+                "image": "/static/img/sample_image_1.jpg",
+                "name": "Jane Smith",
+                "description": "Mihai Vlasceanu azért lenne jó választás az adott állásra, mert magas pontszáma alapján kiemelkedő tudású és tapasztalt szakembernek tekinthető. A pontszám alapján valószínűsíthető, hogy rendelkezik a szükséges készségekkel és ismeretekkel ahhoz, hogy hatékonyan és eredményesen ellássa az állásban foglalt feladatokat. Ezen kívül a magas pontszám azt is jelzi, hogy elkötelezett és ambiciózus személyiség, aki nagy valószínűséggel szorgalmasan és precízen végezné el a rábízott feladatokat.",
+                "rating": 9.2
+            },
+            {
+                "id": 2,
+                "image": "/static/img/sample_image_2.jpg",
+                "name": "Alice Johnson",
+                "description": "Mihai Vlasceanu azért lenne jó választás az adott állásra, mert magas pontszáma alapján kiemelkedő tudású és tapasztalt szakembernek tekinthető. A pontszám alapján valószínűsíthető, hogy rendelkezik a szükséges készségekkel és ismeretekkel ahhoz, hogy hatékonyan és eredményesen ellássa az állásban foglalt feladatokat. Ezen kívül a magas pontszám azt is jelzi, hogy elkötelezett és ambiciózus személyiség, aki nagy valószínűséggel szorgalmasan és precízen végezné el a rábízott feladatokat.",
+                "rating": 7.7
+            },
+            {
+                "id": 3,
+                "image": "/static/img/sample_image_1.jpg",
+                "name": "Jane Smith",
+                "description": "Mihai Vlasceanu azért lenne jó választás az adott állásra, mert magas pontszáma alapján kiemelkedő tudású és tapasztalt szakembernek tekinthető. A pontszám alapján valószínűsíthető, hogy rendelkezik a szükséges készségekkel és ismeretekkel ahhoz, hogy hatékonyan és eredményesen ellássa az állásban foglalt feladatokat. Ezen kívül a magas pontszám azt is jelzi, hogy elkötelezett és ambiciózus személyiség, aki nagy valószínűséggel szorgalmasan és precízen végezné el a rábízott feladatokat.",
+                "rating": 9.2
+            },
+            {
+                "id": 4,
+                "image": "/static/img/sample_image_2.jpg",
+                "name": "Alice Johnson",
+                "description": "Mihai Vlasceanu azért lenne jó választás az adott állásra, mert magas pontszáma alapján kiemelkedő tudású és tapasztalt szakembernek tekinthető. A pontszám alapján valószínűsíthető, hogy rendelkezik a szükséges készségekkel és ismeretekkel ahhoz, hogy hatékonyan és eredményesen ellássa az állásban foglalt feladatokat. Ezen kívül a magas pontszám azt is jelzi, hogy elkötelezett és ambiciózus személyiség, aki nagy valószínűséggel szorgalmasan és precízen végezné el a rábízott feladatokat.",
+                "rating": 7.7
+            }
+        ],
+        "best_item_id": 0,
+        "best_item_explanation": " A magas pontszám alapján Andrei egy megbízható és elkötelezett munkavállaló lenne az adott pozícióban. alapján lett kiválasztva.Raluca Mihai Dumitrescu"
+    }
+
     return templates.TemplateResponse("results.html", {
         "request": request,
-        "name":param1,
-        "pos":param2,
-        "items": data['items'],
-        "best_item_id": data['best_item_id'],
-        "best_item_explanation": data['best_item_explanation']
+        "name": param1,
+        "pos": param2,
+        "items": dummy_data["items"],
+        "best_item_id": dummy_data["best_item_id"],
+        "best_item_explanation": dummy_data["best_item_explanation"]
     })
-    db.close()
+
+
 # Végpont a form adatok és fájl fogadására
 @app.post("/submit-job")
 async def submit_job(
@@ -136,36 +200,56 @@ async def submit_job(
     keywords: Optional[str] = Form(None),  # JSON formátumban érkezik
     cv: Optional[UploadFile] = File(None)
 ):
+    db = SessionLocal()
+    print(cv)
     try:
         # A JSON-ben érkező kulcsszavak deszerializálása
         keywords_list = json.loads(keywords) if keywords else []
 
-        # Fájl név ellenőrzése (nem olvassuk be a tartalmát)
-        if cv:
-            cv_filename = cv.filename
-            print(f"Fájl neve: {cv_filename}")
+        # Ellenőrzés, hogy szöveges input vagy PDF fájl érkezett
+        if cv and cv.filename.endswith(".pdf"):
+            # PDF fájl feldolgozása
+            pdf_path = f"/tmp/{cv.filename}"  # Ideiglenes helyre mentjük a fájlt
+            with open(pdf_path, "wb") as buffer:
+                buffer.write(await cv.read())
 
-        # Logikailag feldolgozhatod az adatokat
-        print("Industry:", industry)
-        print("Job Description:", jobDescription)
-        print("Keywords:", keywords_list)
+            # PDF szöveg kinyerése
+            job_text = extract_text_from_pdf(pdf_path)
+            if not job_text:
+                raise HTTPException(status_code=400, detail="Nem sikerült kinyerni a szöveget a PDF fájlból.")
+        elif jobDescription:
+            # Szöveges leírás esetén közvetlenül használjuk
+            job_text = jobDescription
+        else:
+            raise HTTPException(status_code=400, detail="Nincs érvényes állásleírás vagy PDF fájl.")
+
+        # Job adatok kinyerése a szövegből
+        extracted_info = extract_job_info(job_text)
+        if not extracted_info:
+            raise HTTPException(status_code=500, detail="Nem sikerült kinyerni az adatokat a leírásból.")
+
+        # Adatok mentése az adatbázisba
+        new_job = save_job_description_to_db(extracted_info, db)
 
         # Visszaadunk egy válasz üzenetet
         return {
             "status": "success",
+            "job_id": new_job.id,
             "industry": industry,
-            "jobDescription": jobDescription,
+            "jobDescription": jobDescription if jobDescription else "PDF alapján",
             "keywords": keywords_list,
-            "cv_filename": cv_filename if cv else None
+            "cv_filename": cv.filename if cv else None
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Nem sikerült feldolgozni a kérést: {str(e)}")
+    finally:
+        db.close()
 
 if __name__ == "__main__":
     import uvicorn
     import os
     from core.database import initialize_database
     initialize_database()
-    preprocess_and_cache()
-    port = int(os.environ.get("PORT", 8000))  # Heroku-n PORT változó lesz elérhető
-    uvicorn.run("main:app", host="localhost", port=port, reload=False)
+    #preprocess_and_cache()
+    port = int(os.environ.get("PORT", 3000))  # Heroku-n PORT változó lesz elérhető
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)

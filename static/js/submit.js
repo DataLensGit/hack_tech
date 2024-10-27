@@ -67,9 +67,8 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .then(response => response.json())
         .then(data => {
-            window.location.href = '/candidates?param1=Job&param2=you';
+            window.location.href = '/candidates?param1=candidates&param2=you';
             console.log('Válasz a szervertől:', data);
-            // Ide jöhet a további feldolgozás
         })
         .catch(error => {
             console.error('Hiba történt az adatok küldése közben:', error);
